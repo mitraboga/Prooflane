@@ -1,0 +1,211 @@
+{
+  "generatedAt": "2026-09-11T16:54:22.246Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "architecture": "x64",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz",
+  "chain": "Local EVM 31337 / Shanghai",
+  "solidity": "0.8.28",
+  "optimizerRuns": 200,
+  "viaIR": true,
+  "method": "3 fresh mandates per batch size; one allowed tool; cost=1; warm-up then 25 offline verifications per sample; no external services. Contract deployment and mandate creation gas excluded.",
+  "warning": "Local measurements only. Settlement wall time includes local RPC behavior and is not public-chain latency. No throughput or finality claim.",
+  "gasReductionPercent32vs1": 92.15,
+  "measurements": [
+    {
+      "batchSize": 1,
+      "repetitions": 3,
+      "meanGas": 206437.333,
+      "meanGasPerReceipt": 206437.333,
+      "meanSettlementMs": 70.328,
+      "meanOfflineVerifyMs": 23.781,
+      "proofBytes": 0,
+      "meanBundleBytes": 1498,
+      "samples": [
+        {
+          "gas": 206454,
+          "gasPerReceipt": 206454,
+          "settlementMs": 68.54499999999825,
+          "offlineVerifyMs": 24.639040000000094,
+          "proofBytes": 0,
+          "bundleBytes": 1498,
+          "transactionHash": "0xcbd5f472559cea9746dc9c352115f1334fa3a04a7047d9647d59d9551809b1b9"
+        },
+        {
+          "gas": 206429,
+          "gasPerReceipt": 206429,
+          "settlementMs": 86.24799999999959,
+          "offlineVerifyMs": 20.551628000000054,
+          "proofBytes": 0,
+          "bundleBytes": 1498,
+          "transactionHash": "0x62155e9f3115de415f42ed305afa8ca7f02a19f3111ffdade3b05dd69d9926f0"
+        },
+        {
+          "gas": 206429,
+          "gasPerReceipt": 206429,
+          "settlementMs": 56.19120000000112,
+          "offlineVerifyMs": 26.15304799999998,
+          "proofBytes": 0,
+          "bundleBytes": 1498,
+          "transactionHash": "0x3400820c5939649764a1bc721e16f16c9165d955f3ae3085abd4400f9eada55b"
+        }
+      ]
+    },
+    {
+      "batchSize": 2,
+      "repetitions": 3,
+      "meanGas": 216510,
+      "meanGasPerReceipt": 108255,
+      "meanSettlementMs": 75.335,
+      "meanOfflineVerifyMs": 17.361,
+      "proofBytes": 32,
+      "meanBundleBytes": 1566.667,
+      "samples": [
+        {
+          "gas": 216507,
+          "gasPerReceipt": 108253.5,
+          "settlementMs": 77.21399999999994,
+          "offlineVerifyMs": 19.266447999999947,
+          "proofBytes": 32,
+          "bundleBytes": 1566,
+          "transactionHash": "0x599a38836f5a18da290e6aacc2af53f85e212de5791384f4244ac8aef7ed5c40"
+        },
+        {
+          "gas": 216520,
+          "gasPerReceipt": 108260,
+          "settlementMs": 65.66159999999945,
+          "offlineVerifyMs": 17.494967999999936,
+          "proofBytes": 32,
+          "bundleBytes": 1567,
+          "transactionHash": "0x87c561e5bfb9adde65294360cca03aebdf38274ebe362a3de89e146de8d5465e"
+        },
+        {
+          "gas": 216503,
+          "gasPerReceipt": 108251.5,
+          "settlementMs": 83.12900000000081,
+          "offlineVerifyMs": 15.322828000000008,
+          "proofBytes": 32,
+          "bundleBytes": 1567,
+          "transactionHash": "0x413b5859f71f529590f959e6f60f7c6dba3880c8a3b1022a200a02ff0992b797"
+        }
+      ]
+    },
+    {
+      "batchSize": 8,
+      "repetitions": 3,
+      "meanGas": 276932.333,
+      "meanGasPerReceipt": 34616.542,
+      "meanSettlementMs": 111.612,
+      "meanOfflineVerifyMs": 13.059,
+      "proofBytes": 96,
+      "meanBundleBytes": 1705,
+      "samples": [
+        {
+          "gas": 276941,
+          "gasPerReceipt": 34617.625,
+          "settlementMs": 127.13220000000001,
+          "offlineVerifyMs": 11.580267999999924,
+          "proofBytes": 96,
+          "bundleBytes": 1705,
+          "transactionHash": "0x943ef21f9ee54091bf18cd3375db4dfcddb374e8b741515c00c264f6905dad91"
+        },
+        {
+          "gas": 276949,
+          "gasPerReceipt": 34618.625,
+          "settlementMs": 115.11139999999796,
+          "offlineVerifyMs": 15.278868000000076,
+          "proofBytes": 96,
+          "bundleBytes": 1705,
+          "transactionHash": "0x488a5689bfc5a124b3398577d8a0a27c0bc5b38060d508c4a9de7f683cfbe37a"
+        },
+        {
+          "gas": 276907,
+          "gasPerReceipt": 34613.375,
+          "settlementMs": 92.59189999999944,
+          "offlineVerifyMs": 12.319091999999946,
+          "proofBytes": 96,
+          "bundleBytes": 1705,
+          "transactionHash": "0x9f4153500dc3430413843fba7f419777031b75d3f6859da41eb1eda610a2721d"
+        }
+      ]
+    },
+    {
+      "batchSize": 16,
+      "repetitions": 3,
+      "meanGas": 357387,
+      "meanGasPerReceipt": 22336.688,
+      "meanSettlementMs": 168.223,
+      "meanOfflineVerifyMs": 13.136,
+      "proofBytes": 128,
+      "meanBundleBytes": 1775,
+      "samples": [
+        {
+          "gas": 357496,
+          "gasPerReceipt": 22343.5,
+          "settlementMs": 158.6291999999994,
+          "offlineVerifyMs": 13.711532000000007,
+          "proofBytes": 128,
+          "bundleBytes": 1775,
+          "transactionHash": "0x6d0df9d554b21e882e6092ebfad0ad78fb6025f1c8a9bdbf22511e558917088d"
+        },
+        {
+          "gas": 357361,
+          "gasPerReceipt": 22335.0625,
+          "settlementMs": 158.37420000000202,
+          "offlineVerifyMs": 13.403703999999852,
+          "proofBytes": 128,
+          "bundleBytes": 1775,
+          "transactionHash": "0x6528393f77ac6514b8af2bd17c420398adbf7347220c7e8acf1917711ecb2696"
+        },
+        {
+          "gas": 357304,
+          "gasPerReceipt": 22331.5,
+          "settlementMs": 187.66419999999925,
+          "offlineVerifyMs": 12.293007999999972,
+          "proofBytes": 128,
+          "bundleBytes": 1775,
+          "transactionHash": "0x3382ba9087d29782e69572f3bd8215143b5ee8e43833f0affe9929ca0a6f8ab7"
+        }
+      ]
+    },
+    {
+      "batchSize": 32,
+      "repetitions": 3,
+      "meanGas": 518555,
+      "meanGasPerReceipt": 16204.844,
+      "meanSettlementMs": 311.136,
+      "meanOfflineVerifyMs": 15.213,
+      "proofBytes": 160,
+      "meanBundleBytes": 1844,
+      "samples": [
+        {
+          "gas": 518577,
+          "gasPerReceipt": 16205.53125,
+          "settlementMs": 303.3001000000004,
+          "offlineVerifyMs": 14.289139999999897,
+          "proofBytes": 160,
+          "bundleBytes": 1844,
+          "transactionHash": "0xf1f0c2a5c6455d212d47e3dba14b1fed40da6aa4dce7a42fbf0395d4f563a4a2"
+        },
+        {
+          "gas": 518573,
+          "gasPerReceipt": 16205.40625,
+          "settlementMs": 266.16270000000077,
+          "offlineVerifyMs": 15.136536000000197,
+          "proofBytes": 160,
+          "bundleBytes": 1844,
+          "transactionHash": "0x034b171cce0c8e5789f1dcf5c8aa032f02860505cddec6fbd0e4cfca8df642f4"
+        },
+        {
+          "gas": 518515,
+          "gasPerReceipt": 16203.59375,
+          "settlementMs": 363.94660000000295,
+          "offlineVerifyMs": 16.213103999999877,
+          "proofBytes": 160,
+          "bundleBytes": 1844,
+          "transactionHash": "0x7f9991de3ccc5665ceece56f888228eabec9b8ab9a2a947296d11450cd07ec83"
+        }
+      ]
+    }
+  ]
+}
