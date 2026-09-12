@@ -125,7 +125,7 @@ A signed receipt proves what the key claimed. Chain verification additionally pr
 
 ---
 
-## ⛓️ Solidity in Practice
+## 🔗 Solidity in Practice
 
 [`contracts/Prooflane.sol`](contracts/Prooflane.sol) is the acceptance authority. The JavaScript gateway provides early feedback, while Solidity repeats the security checks so a caller cannot bypass them by submitting a transaction directly.
 
