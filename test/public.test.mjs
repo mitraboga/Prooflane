@@ -29,7 +29,8 @@ test('public startup requires durable storage, secure origin and a session secre
   const config = {mode:'base-sepolia',publicOrigin:'https://prooflane.example',databaseUrl:'postgres://test:test@localhost/test',sessionSecret:secret};
   assert.equal(readConfig(config,{}).host,'0.0.0.0');
   assert.equal(readConfig(config,{}).confirmations,3);
-  for (const override of [{databaseUrl:''},{publicOrigin:'http://prooflane.example'},{publicOrigin:'https://prooflane.example/path'},{sessionSecret:'short'},{confirmations:0}]) assert.throws(()=>readConfig({...config,...override},{}));
+  assert.equal(readConfig({...config,sessionSecret:Buffer.alloc(32,7).toString('base64')},{}).publicMode,true);
+  for (const override of [{databaseUrl:''},{publicOrigin:'http://prooflane.example'},{publicOrigin:'https://prooflane.example/path'},{sessionSecret:'short'},{sessionSecret:'x'.repeat(42)},{confirmations:0}]) assert.throws(()=>readConfig({...config,...override},{}));
   assert.equal(readConfig({},{}).mode,'local');
 });
 

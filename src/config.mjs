@@ -18,7 +18,8 @@ export function readConfig(options = {}, env = process.env) {
     try { origin = new URL(publicOrigin); } catch { throw new Error('PUBLIC_ORIGIN must be an HTTPS origin.'); }
     if (origin.protocol !== 'https:' || origin.origin !== publicOrigin || origin.username || origin.password) throw new Error('PUBLIC_ORIGIN must be the exact HTTPS origin without a trailing slash.');
     if (!databaseUrl) throw new Error('Public mode requires DATABASE_URL for persistent PostgreSQL storage.');
-    if (typeof sessionSecret !== 'string' || sessionSecret.length < 48) throw new Error('Public mode requires SESSION_SECRET with at least 48 random characters.');
+    // Render generates 32 random bytes as base64 (44 characters with padding).
+    if (typeof sessionSecret !== 'string' || sessionSecret.length < 43) throw new Error('Public mode requires SESSION_SECRET with at least 43 random characters; use a 256-bit generated secret.');
   }
   return {
     mode, publicMode, publicOrigin, databaseUrl, sessionSecret,
