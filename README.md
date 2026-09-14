@@ -9,8 +9,8 @@
   <img src="https://img.shields.io/badge/JavaScript-ES_Modules-F7DF1E?logo=javascript&logoColor=black" alt="JavaScript ES modules">
   <img src="https://img.shields.io/badge/Solidity-0.8.28-363636?logo=solidity&logoColor=white" alt="Solidity 0.8.28">
   <img src="https://img.shields.io/badge/ethers-6.17.0-2535A0" alt="ethers 6.17.0">
-  <img src="https://img.shields.io/badge/SQLite-WAL-003B57?logo=sqlite&logoColor=white" alt="SQLite WAL">
-  <img src="https://img.shields.io/badge/Foundry-Anvil_1.7.1-orange" alt="Foundry Anvil 1.7.1">
+  <img src="https://img.shields.io/badge/Neon-PostgreSQL-00E599?logo=postgresql&logoColor=black" alt="Neon PostgreSQL">
+  <img src="https://img.shields.io/badge/Base-Sepolia-0052FF" alt="Base Sepolia public mode">
   <img src="https://img.shields.io/badge/EIP--712-Typed_Signatures-6A5ACD" alt="EIP-712 typed signatures">
   <img src="https://img.shields.io/badge/Merkle_Trees-Allowlist_%2B_Receipts-0EA5E9" alt="Merkle allowlists and receipt proofs">
   <a href="https://github.com/mitraboga/Prooflane/actions/workflows/ci.yml"><img src="https://github.com/mitraboga/Prooflane/actions/workflows/ci.yml/badge.svg" alt="Verify Prooflane CI"></a>
@@ -21,7 +21,7 @@
 
 **Authorize → Execute → Sign → Anchor → Verify**
 
-[Quick Start](#-run-it-end-to-end) · [Architecture](#architecture) · [Solidity](#-solidity-in-practice) · [Measurements](#-testing-and-measurements) · [Interview Guide](docs/interview-guide.md)
+[Public Hosting](docs/public-deployment.md) · [Local Quick Start](#-run-it-end-to-end) · [Architecture](#architecture) · [Solidity](#-solidity-in-practice) · [Measurements](#-testing-and-measurements) · [Interview Guide](docs/interview-guide.md)
 
 </div>
 
@@ -31,9 +31,9 @@
 
 An agent can call tools on someone's behalf, but an ordinary application log leaves important questions with its operator: **Which key signed this result? Was the action within the owner's policy? Has the recorded output changed?**
 
-**Prooflane** is an end-to-end evidence system for that workflow. An owner publishes an agent's permissions and credit limits in a Solidity contract. A local gateway executes permitted tools and signs receipts. The contract validates batches of receipts, and another party can verify an exported JSON bundle against the expected deployment.
+**Prooflane** is an end-to-end evidence system for that workflow. An owner publishes an agent's permissions and credit limits in a Solidity contract. A Node.js gateway executes permitted tools and signs receipts. The contract validates batches of receipts, and another party can verify an exported JSON bundle against the expected deployment.
 
-> **Current status:** working local portfolio prototype with a browser console, API, SQLite database, SDK, Solidity contract, verification CLI, benchmarks and 43 passing tests. It runs real transactions on Anvil without API keys or a wallet extension. Public hosting, an autonomous LLM and payment integrations are not part of this release.
+> **Current status:** public hosting support is implemented for **Render + Neon PostgreSQL + Base Sepolia**, with visitor isolation, persistent transaction recovery and free-demo limits. Account configuration and the funded testnet deployment are still pending; no live URL is claimed yet. The original **SQLite + Anvil** mode remains runnable without credentials. This is a portfolio demo with deterministic tools, not an autonomous LLM or payment service.
 
 ### What This Project Demonstrates
 
@@ -52,28 +52,30 @@ The intended use case is a tool gateway whose consumers need portable evidence o
 | --- | --- | --- |
 | Interface | HTML, CSS, vanilla JavaScript | Responsive console and verifier with no frontend build step |
 | API and orchestration | Node.js 24+, native HTTP, ES modules | Request validation, execution, signing and settlement in readable modules |
-| Persistence | Native `node:sqlite`, WAL, transactions | Local records, pending reservations, unique request IDs and recovery state |
+| Persistence | Neon PostgreSQL with `pg` 8.23.0; SQLite WAL for local development | Receipts, content, reservations, scoped request IDs, transaction intents and recovery cursors |
+| Hosting | One Render Free Node web service | Serves the website and API together over HTTPS; no separate frontend server |
 | Ethereum client | ethers 6.17.0 | Typed-data signing, ABI encoding, deployment, transactions and event reads |
 | Contract | Solidity 0.8.28 | Deterministic policy enforcement and receipt acceptance |
-| Development chain | Native Foundry Anvil 1.7.1 | Real EVM execution with persistent local history, chain ID `31337` |
+| Public chain | Base Sepolia, chain ID `84532` | Existing Solidity deployment, testnet gas, canonical block confirmation checks and explorer links |
+| Development chain | Native Foundry Anvil 1.7.1, chain ID `31337` | Credential-free local transactions with persistent history |
 | Verification and quality | Node test runner, standalone CLI, GitHub Actions | Cross-language checks, failure tests and repeatable validation |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  UI[Evidence console / SDK] --> API[Local tool gateway]
-  API --> DB[(SQLite: content and receipts)]
+  UI[Evidence console / SDK] --> API[Node.js tool gateway on Render]
+  API --> DB[(Neon PostgreSQL: content and receipts)]
   API --> T[Deterministic tools]
   T --> S[EIP-712 agent signature]
-  S --> C[Solidity policy and batch verifier]
+  S --> C[Solidity policy and batch verifier on Base Sepolia]
   C --> E[Batch root and event]
   DB --> B[Exported proof bundle]
   B --> V[Independent verifier]
   E --> V
 ```
 
-The database serves queries and stores full content. The chain enforces acceptance rules and publishes commitments. A single trusted organization may be better served by signed logs or a transparency log. The blockchain is useful when counterparties need independently observable policy acceptance; it is not a replacement for ordinary storage.
+The diagram shows the public configuration. Local development uses the same flow with SQLite and Anvil. The database serves queries and stores full content. The chain enforces acceptance rules and publishes commitments. A single trusted organization may be better served by signed logs or a transparency log. The blockchain is useful when counterparties need independently observable policy acceptance; it is not a replacement for ordinary storage.
 
 Read [architecture and trust model](docs/architecture.md), [protocol specification](docs/protocol.md), and [research and precedents](docs/research.md).
 
@@ -85,14 +87,14 @@ Read [architecture and trust model](docs/architecture.md), [protocol specificati
 
 **Create demo mandate** submits an owner transaction defining the agent address, allowed-tool Merkle root, **160-credit budget**, **75-credit per-receipt cap** and expiry. The demo permits fingerprinting and redaction. A custom mandate lets the user choose different limits.
 
-The contract stores the policy. The gateway keeps its human-readable label and tool names in SQLite. Policy creation is an owner transaction; the copied policy inside an exported bundle is not itself an owner-signed EIP-712 document.
+The contract stores the policy. The gateway keeps its human-readable label and tool names in the database. Policy creation is an owner transaction; the copied policy inside an exported bundle is not itself an owner-signed EIP-712 document.
 
 ### 2. Validate, execute and sign
 
 The client supplies a mandate, tool, input and request ID. Before execution, the gateway checks the current policy and includes pending reservations in the budget calculation:
 
 ```text
-on-chain spent + locally reserved credits + next tool cost <= mandate budget
+on-chain spent + database-reserved credits + next tool cost <= mandate budget
 ```
 
 | Tool | Actual behavior | Cost |
@@ -101,9 +103,9 @@ on-chain spent + locally reserved credits + next tool cost <= mandate budget
 | `text.redact` | Replace common email and phone patterns; not a complete PII filter | 30 credits |
 | `text.summarize` | Extract the first three sentences; no LLM inference | 40 credits |
 
-A permitted tool runs locally. The gateway hashes its input and output, assigns a consecutive nonce, signs the receipt with the agent key and saves it transactionally. Its status is **pending**, with credits reserved but no chain inclusion yet.
+A permitted tool runs on the gateway. The gateway hashes its input and output, assigns a consecutive nonce, signs the receipt with the agent key and saves it transactionally. Its status is **pending**, with credits reserved but no chain inclusion yet.
 
-For the demo, fingerprinting and redaction reserve **50 credits**. Attempting sentence extraction produces an allowlist denial before the tool runs. Denials are local operational records; only accepted executions receive signed receipts.
+For the demo, fingerprinting and redaction reserve **50 credits**. Attempting sentence extraction produces an allowlist denial before the tool runs. Denials are off-chain operational records; only accepted executions receive signed receipts.
 
 ### 3. Anchor the pending receipts
 
@@ -119,7 +121,7 @@ For the two-call example, successful settlement changes `spent` from `0` to `50`
 
 ### 4. Export and independently verify
 
-Selecting a receipt exposes its signer, content hashes, root, transaction and recorded output. **Export JSON** produces a portable bundle containing the receipt, signature, input/output, policy claim, action proof and batch inclusion proof. **Open in verifier** checks that evidence against the configured local deployment.
+Selecting a receipt exposes its signer, content hashes, root, transaction and recorded output. **Export JSON** produces a portable bundle containing the receipt, signature, input/output, policy claim, action proof and batch inclusion proof. **Open in verifier** checks that evidence against the configured deployment. Public mode also links transactions to Base Sepolia’s explorer.
 
 A signed receipt proves what the key claimed. Chain verification additionally proves that the configured contract accepted it under its rules. Neither establishes that an external tool told the truth.
 
@@ -132,8 +134,8 @@ A signed receipt proves what the key claimed. Chain verification additionally pr
 ### Contract Lifecycle and JavaScript Integration
 
 1. `src/compile.mjs` compiles the Solidity source with **solc 0.8.28**, optimizer **200 runs**, **viaIR** and the **Shanghai** EVM target.
-2. `src/chain.mjs` uses the generated ABI and bytecode to deploy through ethers on first startup. Later starts restore the existing local deployment.
-3. `src/service.mjs` creates mandates, signs receipts, submits batches, waits for mining and reconciles events with SQLite.
+2. `scripts/deploy.mjs` deploys the public contract explicitly and records its address, transaction and creation block. `src/chain.mjs` connects to that existing contract, checks chain `84532`, and compares its runtime bytecode with the build artifact. Local mode still deploys on first startup.
+3. `src/service.mjs` creates mandates, signs receipts using the actual chain ID, saves the signed transaction before broadcast, waits for the configured confirmations and reconciles events with PostgreSQL.
 4. The verifier reads contract state and transaction logs through the ABI to authenticate exported evidence.
 
 The compiled runtime is **3,736 bytes** for the recorded build. No proxy, token, custody, transfer logic or external contract calls are involved.
@@ -208,12 +210,12 @@ Costs and nonces cross JSON boundaries as decimal strings, avoiding JavaScript i
 
 | Location | Data held there |
 | --- | --- |
-| SQLite and exported bundles | Full input/output, signatures, receipts and application metadata |
+| PostgreSQL (SQLite locally) and exported bundles | Full input/output, signatures, receipts and application metadata |
 | Contract storage | Mandates, accounting counters, batch metadata and previous-root links |
 | Transaction calldata | Submitted receipt fields, content hashes, signatures and action proofs |
 | Contract events | Creation/revocation records and batch anchor metadata |
 
-Full documents are kept off chain, but **receipt fields and hashes are visible in transaction calldata**. Hashing is not encryption. Exporting a bundle discloses its included content; labels, request IDs and local timestamps are not signed receipt fields.
+Full documents are kept off chain, but **receipt fields and hashes are visible in transaction calldata**. Hashing is not encryption. Exporting a bundle discloses its included content; labels, request IDs and application timestamps are not signed receipt fields.
 
 ---
 
@@ -222,7 +224,7 @@ Full documents are kept off chain, but **receipt fields and hashes are visible i
 | Mode | Checks performed | Trust boundary |
 | --- | --- | --- |
 | Offline CLI | Schema, signature, content hashes, action proof, cap consistency, Merkle membership and domain consistency | Cannot establish that the supplied policy or root ever existed on a trusted chain |
-| Online CLI / browser verifier | Offline checks plus expected chain/contract, immutable on-chain policy, batch inclusion and the precise successful transaction's anchor event/block | Depends on the independently configured deployment and RPC; the local demo has no public-chain finality policy |
+| Online CLI / browser verifier | Offline checks plus expected chain/contract, immutable on-chain policy, batch inclusion and the precise successful transaction's anchor event/block | Depends on the independently configured deployment and RPC; public mode requires three canonical L2 blocks by default; this is not Ethereum settlement finality |
 
 The verifier does not let an imported bundle choose its own trusted deployment. Otherwise an attacker could supply a different contract or invented root and a self-consistent story.
 
@@ -255,20 +257,20 @@ The stored original stays available. Verification fails closed rather than accep
 | Problem | Implemented behavior |
 | --- | --- |
 | A client retries a request | The same request ID and payload return the existing receipt; a changed payload under that ID returns HTTP 409 |
-| Concurrent calls consume the same remaining budget | A serialized mutation queue considers pending reservations; SQLite transactions and uniqueness constraints protect local records |
+| Concurrent calls consume the same remaining budget | A process queue and PostgreSQL advisory lock serialize reservations and signer nonces; transactions and unique constraints protect records |
 | One receipt in a batch is invalid | Solidity reverts the whole transaction without partial accounting updates |
-| Mining succeeds before the database is updated | On restart, `BatchAnchored` event replay reconciles accepted batches with pending local receipts |
-| The service restarts | SQLite persists application records; Anvil snapshots restore chain state and historical transactions/logs |
+| Mining succeeds before the database is updated | A durable signed-transaction journal recovers the saved hash; bounded `BatchAnchored` indexing reconciles receipt state |
+| The service restarts | Public records remain in Neon and contract state remains on Base Sepolia; local mode uses SQLite plus Anvil snapshots |
 
-The queue coordinates **one gateway process**. SQLite and Ethereum are separate systems, not one distributed transaction. Recovery tests cover a mined and checkpointed transaction before database indexing. A hard crash before the local chain checkpoint can still lose recent chain changes.
+PostgreSQL transaction-level advisory locks coordinate mutations across overlapping service processes; each process also keeps a queue. All instances must use the same database and signer. Signed transaction bytes are committed before broadcast and replayed with the same hash after an uncertain response. The database and chain still do not share a distributed transaction.
 
-Multiple workers would require durable reservation coordination and relayer nonce management. External tools would need their own idempotency or compensation rules; this release's tools have no external side effects.
+The public index scans bounded block ranges from a persistent cursor and checks canonical confirmations when settling and verifying. Deep reorganization rollback and automatic replacement of stuck transactions remain operator work. The local mode retains Anvil checkpoints; a crash before a checkpoint can lose recent local chain changes. External tools would need their own idempotency or compensation rules.
 
 ---
 
 ## 🚀 Run It End-to-End
 
-### 1. Install and Start
+### 1. Install and Start Locally
 
 Requires **Node.js 24+** and npm on Windows x64, Linux x64/ARM64 or macOS x64/ARM64. Keep optional npm dependencies enabled so the pinned native Anvil binary installs.
 
@@ -316,11 +318,18 @@ npm run verify -- data/exports/demo-receipt.json --rpc http://127.0.0.1:8545 --c
 
 Exit code `0` means the requested checks passed; `1` means verification failed.
 
+### Public Hosting
+
+[Deployment runbook](docs/public-deployment.md) covers the exact Render settings, Neon connection, encrypted testnet-key helper, faucet funding, contract deployment and live acceptance checks. [`render.yaml`](render.yaml) explicitly selects the Free plan. Render serves the existing website and API in one process; GitHub Actions validates the code.
+
+Public visitors receive a signed, HttpOnly session cookie and see only their own mandates and evidence. The server sponsors testnet gas; visitors need no wallet. Keep the cookie to revisit that workspace, and export important bundles. Clearing cookies or changing the session secret loses access to the guest workspace.
+
 ### Configuration and Operations
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `PORT` | `3000` | Browser/API port |
+| `PROOFLANE_MODE` | `local` | `local` or `base-sepolia`; public mode fails startup if required settings are missing |
+| `PORT` | `3000` locally; provided by Render | Browser/API port |
 | `CHAIN_PORT` | `8545` | Local EVM RPC port |
 | `DATA_DIR` | `./data` | SQLite and persistent chain data |
 | `PROOFLANE_URL` | `http://127.0.0.1:3000` | SDK example's gateway URL |
@@ -333,14 +342,14 @@ If Anvil is missing, check your platform and reinstall with optional dependencie
 
 ## 🔌 SDK and HTTP API
 
-The SDK is a small transport client. **The gateway signs receipts** using its local demonstration agent; the SDK caller does not hold the signer.
+The SDK is a small transport client. **The gateway signs receipts** using its configured demonstration agent; the SDK caller does not hold the signer.
 
 Run the following from an ES module at the repository root while the server is running:
 
 ```js
 import { ProoflaneClient } from './sdk/client.mjs';
 
-const client = new ProoflaneClient();
+const client = new ProoflaneClient(); // Or pass the verified public HTTPS URL.
 const policy = await client.createMandate({
   label: 'Interview demo',
   budget: '100',
@@ -365,15 +374,16 @@ console.log(report.valid);
 
 | Endpoint | Responsibility |
 | --- | --- |
-| `GET /api/health`, `GET /api/state` | Readiness, policies, catalog and recent evidence |
+| `GET /api/session` | Establish/reuse a visitor cookie; the SDK handles this automatically |
+| `GET /api/health`, `GET /api/state` | Readiness and the current visitor’s policies, catalog and evidence |
 | `POST /api/mandates` | Create an on-chain policy |
 | `POST /api/execute` | Validate and execute one tool; return a pending signed receipt |
 | `POST /api/anchor` | Settle pending receipts for a mandate |
 | `POST /api/revoke` | Submit owner revocation |
 | `GET /api/receipts/:id/bundle` | Export an anchored receipt |
-| `POST /api/verify` | Verify a bundle against the local deployment |
+| `POST /api/verify` | Verify a bundle against the configured deployment |
 
-Mutations require JSON and `X-Prooflane-Client: local-demo`. Host/origin checks and this header are local browser protections, **not user authentication**. Input is bounded to 5,000 text characters, request bodies to 100 KB and pending receipts to 32 per mandate.
+Mutations require JSON and `X-Prooflane-Client: prooflane-v1`. Public mode also requires a valid signed guest cookie and the configured host/origin. These sessions isolate demo visitors; they are not verified user identities. Local mode also accepts the legacy `local-demo` header. Input is bounded to 5,000 text characters, request bodies to 100 KB and pending receipts to 32 per mandate.
 
 See the [API reference](docs/api.md) for schemas, status codes and limits, and [the complete SDK example](examples/agent.mjs) for rejection and tamper handling.
 
@@ -392,17 +402,19 @@ npm run lab:bitcoin
 npm audit
 ```
 
-The verified suite contains **43 passing tests**:
+The suite defines **55 tests**, including a PostgreSQL integration scenario that runs in CI; without `TEST_DATABASE_URL`, that scenario is skipped. See the [validation record](docs/validation.md) for observed runs.
 
 | Suite | Tests | Main coverage |
 | --- | ---: | --- |
 | Solidity contract | 14 | Signature/domain agreement, authorization, nonces, caps, budgets, expiry, revocation and atomic batches |
 | Protocol | 10 | Canonicalization, hashing, Merkle edge cases, schema rejection and altered bundles |
-| HTTP integration | 10 | Complete API workflow, idempotency, reservations, deployment checks and mined-batch reconciliation |
+| HTTP/service integration | 13 | Complete workflow, concurrent reservations, visitor isolation, idempotency, restart recovery, lost broadcast responses and durable quotas |
+| Public configuration and HTTP | 8 | Cookie forgery/expiry, host/origin enforcement, rate limits, TLS, unsafe keys, deployment identity and canonical confirmations |
+| PostgreSQL integration | 1 | Two independent services, advisory locks, atomic rollback, evidence recovery and deployment mismatch rejection |
 | Local EVM persistence | 2 | Chain snapshot and historical state restoration |
 | Bitcoin lab | 7 | SHA-256d vectors, linked blocks, Merkle behavior, UTXO rules and double-spend rejection |
 
-[GitHub Actions](https://github.com/mitraboga/Prooflane/actions/workflows/ci.yml) runs installation, syntax checks, compilation, tests and a high-severity dependency audit on Node 24 / Ubuntu. The badge at the top reports the current workflow status.
+[GitHub Actions](https://github.com/mitraboga/Prooflane/actions/workflows/ci.yml) runs installation, syntax checks, compilation, tests and a high-severity dependency audit on Node 24 / Ubuntu with an ephemeral PostgreSQL 18 service. The badge at the top reports the current workflow status.
 
 ### Measured Batch Tradeoff
 
@@ -444,10 +456,10 @@ Mapped to GITAM **CSEN4031 Block Chain Technology**:
 Prooflane/
 ├── contracts/Prooflane.sol     # On-chain mandates, signatures and settlement
 ├── src/
-│   ├── server.mjs             # HTTP routes and local browser protections
+│   ├── server.mjs             # HTTP routes, visitor sessions and origin protections
 │   ├── service.mjs            # Execution, reservations, signing and reconciliation
 │   ├── protocol.mjs           # Canonical hashes, EIP-712, Merkle trees and verifier
-│   ├── store.mjs              # SQLite schema and transactions
+│   ├── store.mjs              # PostgreSQL/SQLite schema, transactions and locks
 │   ├── chain.mjs              # Deployment and persistent chain lifecycle
 │   ├── local-evm.mjs          # Native Anvil process management
 │   ├── compile.mjs            # Solidity compilation and ABI/bytecode generation
@@ -457,9 +469,10 @@ Prooflane/
 ├── examples/agent.mjs         # Complete executable demonstration
 ├── scripts/                   # Verification CLI, benchmarks and testnet deployment
 ├── labs/bitcoin.mjs           # Educational Bitcoin exercises
-├── test/                      # 43 tests across five suites
+├── test/                      # Contract, protocol, HTTP, persistence and PostgreSQL tests
 ├── docs/                      # Protocol, API, design, screenshots and interview notes
-├── .github/workflows/ci.yml   # Automated validation
+├── render.yaml               # Render Free deployment configuration
+├── .github/workflows/ci.yml   # Automated validation with PostgreSQL
 └── SECURITY.md                # Trust boundaries and operating guidance
 ```
 
@@ -471,17 +484,17 @@ Local data, exported documents, dependencies and environment secrets are exclude
 
 **30-second overview**
 
-> “Prooflane is a tool gateway with portable execution receipts. An owner sets permissions and credit limits in Solidity. The gateway executes allowed tools and signs input/output commitments with EIP-712. It batches receipts into Merkle roots, and an independent verifier checks content, signatures and contract acceptance. I built the complete local workflow, including persistence, replay protection, recovery tests and gas benchmarks.”
+> “Prooflane is a tool gateway with portable execution receipts. An owner sets permissions and credit limits in Solidity. The gateway executes allowed tools and signs input/output commitments with EIP-712. It batches receipts into Merkle roots, and an independent verifier checks content, signatures and contract acceptance. I built the complete workflow, including a PostgreSQL-backed public hosting mode, visitor isolation, replay protection, recovery tests and gas benchmarks.”
 
 **Questions to be ready for**
 
 | Question | Core answer |
 | --- | --- |
 | Why check policy in both JavaScript and Solidity? | The gateway prevents unnecessary execution; the contract remains authoritative even when callers bypass the gateway. |
-| Why combine a database with a chain? | SQLite supports application queries and full content. The contract provides separately checkable acceptance and commitments. |
+| Why combine a database with a chain? | PostgreSQL supports application queries and full content; local development uses SQLite. The contract provides separately checkable acceptance and commitments. |
 | What is the hardest consistency problem? | Mining and database updates are separate commits. Event reconciliation handles a mined batch that has not yet been indexed. |
 | What does tampering demonstrate? | Changed content fails its signed hash commitment. A valid signature alone is insufficient without checking the content and trusted chain. |
-| What would scaling change? | Durable reservations, worker coordination, relayer nonce management, external-tool idempotency and finality-aware indexing become necessary. |
+| What would scaling change? | The demo serializes mutations with database locks; higher throughput needs narrower locks, separate signing/relaying, external-tool idempotency and full reorganization recovery. |
 
 A concise live demonstration is **policy → two allowed tools → denied tool → batch → verified export → tampered copy**. Follow with the gas comparison and one failure-handling tradeoff. The [interview guide](docs/interview-guide.md) adds a five-minute script, deeper questions and resume bullets.
 
@@ -489,16 +502,11 @@ A concise live demonstration is **policy → two allowed tools → denied tool �
 
 ## 🛡️ Deployment Boundaries and Next Steps
 
-The local gateway operates publicly known development keys and has no multi-user authentication. Keep it on loopback and never fund those accounts. A compromised signer can make false claims that still satisfy the policy; the contract cannot verify tool truth, external prices or missing activity. Credits are audit units, not cryptocurrency.
+Local mode uses publicly known development keys and stays on loopback. Public mode requires fresh, distinct owner/agent keys, Neon PostgreSQL, an HTTPS origin, a session secret and an explicitly configured Base Sepolia deployment. It rejects common development keys and mainnet. The Solidity receipt schema, tools and credit semantics remain the same.
 
-An optional `npm run deploy:testnet` script accepts `RPC_URL` and `DEPLOYER_PRIVATE_KEY` from the process environment and permits **Ethereum Sepolia or Base Sepolia**. It deploys the contract only; it does not migrate the local UI/gateway. No public deployment is claimed.
+Daily public limits are **5 mandates, 20 chain transactions and 100 executions per visitor**, with shared caps of 100/100/1,000. Global archive limits bound storage; these are abuse controls for a free demo, not an identity system or an availability guarantee. See [public operations and limits](docs/public-deployment.md).
 
-Priorities for extending the working prototype:
-
-1. Add a real agent-tool adapter while preserving authorization and evidence generation.
-2. Move signing to an external signer and add authenticated, isolated tenants.
-3. Add durable multi-worker coordination and finality/reorganization-aware indexing.
-4. Evaluate payment or agent-identity standards only against an actual integration requirement. **x402 and ERC-8004 are not integrated.**
+Next work is real agent-tool integration, external signing and identity, tested reorganization rollback, evidence backup/retention and higher-throughput coordination. **x402 and ERC-8004 are not integrated.** A compromised signer can still make false claims that satisfy the contract's limits; credits are audit units, not cryptocurrency.
 
 [Security notes](SECURITY.md) · [Roadmap](docs/roadmap.md) · [Design and trust model](docs/architecture.md)
 

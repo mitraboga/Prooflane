@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import solc from 'solc';
+import { createHash } from 'node:crypto';
 
 /** Compile the pinned Solidity source for a broadly supported local EVM. */
 export function compileProoflane() {
@@ -24,6 +25,7 @@ export function compileProoflane() {
   const artifact = output.contracts['Prooflane.sol'].Prooflane;
   return {
     contractName: 'Prooflane',
+    sourceHash: createHash('sha256').update(input.sources['Prooflane.sol'].content).digest('hex'),
     compilerVersion: solc.version(),
     abi: artifact.abi,
     bytecode: `0x${artifact.evm.bytecode.object}`,

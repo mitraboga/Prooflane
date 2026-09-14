@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Verifiable, policy-bound execution receipts for agent tools on Ethereum.",
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "start": "node src/server.mjs",
     "dev": "node --watch src/server.mjs",
@@ -19,15 +21,18 @@
   },
   "dependencies": {
     "ethers": "6.17.0",
+    "pg": "8.23.0",
     "solc": "0.8.28"
   },
   "optionalDependencies": {
-    "@foundry-rs/anvil-win32-amd64": "1.7.1",
+    "@foundry-rs/anvil-darwin-amd64": "1.7.1",
+    "@foundry-rs/anvil-darwin-arm64": "1.7.1",
     "@foundry-rs/anvil-linux-amd64": "1.7.1",
     "@foundry-rs/anvil-linux-arm64": "1.7.1",
-    "@foundry-rs/anvil-darwin-amd64": "1.7.1",
-    "@foundry-rs/anvil-darwin-arm64": "1.7.1"
+    "@foundry-rs/anvil-win32-amd64": "1.7.1"
   },
-  "overrides": { "tmp": "0.2.7" },
+  "overrides": {
+    "tmp": "0.2.7"
+  },
   "license": "MIT"
 }

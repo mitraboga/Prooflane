@@ -2,13 +2,13 @@
 
 ## A clear project pitch
 
-“Prooflane is a policy-controlled tool gateway with portable execution receipts. An owner sets an agent's permitted actions and credit limits in a Solidity contract. The gateway runs deterministic tools and signs input/output commitments using EIP-712. Receipts are batched into Merkle roots, and a verifier checks their signatures, content integrity and contract acceptance. I built the UI, API, SQLite persistence, SDK, contracts and verification workflow, including replay and crash-recovery handling.”
+“Prooflane is a policy-controlled tool gateway with portable execution receipts. An owner sets an agent's permitted actions and credit limits in a Solidity contract. The gateway runs deterministic tools and signs input/output commitments using EIP-712. Receipts are batched into Merkle roots, and a verifier checks their signatures, content integrity and contract acceptance. I built the UI, API, PostgreSQL/SQLite persistence, SDK, contracts and verification workflow, including replay and crash-recovery handling.”
 
-State that this is a local portfolio prototype. The summarization tool is an extractive demonstration, credits are not money, the default chain is Anvil, and public testnet deployment is a next step. There is no x402 or ERC-8004 integration yet.
+State that this is a portfolio demo with a Render/Neon/Base Sepolia configuration and a local SQLite/Anvil fallback. Refer to the deployment runbook for the actual live status. The summarization tool is extractive, and credits are not money. There is no x402 or ERC-8004 integration yet.
 
 ## Three truthful resume bullets
 
-- Built Prooflane, an end-to-end tool execution and audit application with a responsive JavaScript interface, Node.js HTTP API, SQLite persistence, Node SDK and Solidity smart contracts.
+- Built Prooflane, an end-to-end tool execution and audit application with a responsive JavaScript interface, Node.js HTTP API, PostgreSQL persistence with a local SQLite adapter, Node SDK and Solidity smart contracts.
 - Implemented EIP-712 execution receipts, Merkle action allowlists and batch inclusion proofs, with contract-enforced agent authorization, exact nonces, per-call caps, cumulative credit budgets and owner revocation.
 - Designed portable JSON evidence export, offline and chain-backed verification, idempotent request handling and chain-log reconciliation for recovery after a mined transaction is not yet reflected in the database.
 
@@ -18,7 +18,7 @@ Use these bullets only for the completed, verified version. Add measured results
 
 | Time | Action | Engineering point |
 | --- | --- | --- |
-| 0:00–0:40 | Open the dashboard and identify the local chain, contract and development accounts | Establish the actual deployment and the trust boundary |
+| 0:00–0:40 | Open the dashboard and identify the selected network, contract and demonstration accounts | Establish the actual deployment and the trust boundary |
 | 0:40–1:20 | Create a mandate allowing digest and redact, with a 100-credit budget and a 30-credit per-call cap | Explain owner, agent, tool allowlist, cap and expiry |
 | 1:20–2:00 | Execute a 20-credit digest and a 30-credit redact; attempt the disallowed summarize tool | Show useful behavior and deterministic policy rejection |
 | 2:00–2:45 | Settle the accepted receipts and inspect the batch root and transaction | Show EIP-712 claims, consecutive nonces and atomic on-chain accounting |
@@ -36,9 +36,9 @@ Keep synthetic documents ready. Rehearse the exact interface and commands from t
 
 **Why both SHA-256 and Keccak-256?** SHA-256 hashes canonical content and connects directly to the syllabus. Ethereum typed-data digests and Merkle pair hashing use Keccak-256. The contract and client share exact definitions. Ethereum Keccak-256 is not interchangeable with standardized SHA3-256.
 
-**How are replay and concurrent overspending prevented?** The contract accepts the exact next nonce for each mandate and checks cumulative costs atomically. Before settlement, the gateway includes pending reservations in its remaining budget and serializes mutation decisions. That queue coordinates one process; multiple workers would require durable locking or transactional reservation ownership.
+**How are replay and concurrent overspending prevented?** The contract accepts the exact next nonce for each mandate and checks cumulative costs atomically. Before settlement, the gateway includes pending reservations in its remaining budget and serializes mutation decisions. PostgreSQL advisory locks coordinate overlapping gateway instances using the same database and signer. This serialized design favors correctness over throughput.
 
-**What happens after the chain mines a batch and the server crashes?** There is a gap between chain acceptance and the SQLite update. Replaying contract events reconciles accepted batches after restart. This is a recovery protocol across two systems, not a single atomic distributed commit. External side effects would need further idempotency or compensation.
+**What happens after the chain mines a batch and the server crashes?** There is a gap between chain acceptance and the database update. Public mode commits signed transaction bytes before broadcasting, then recovers by their hash and indexes contract events. This is a recovery protocol across two systems, not a single atomic distributed commit. External side effects would need further idempotency or compensation.
 
 **Why are batches capped at 32?** It is an explicit bounded-work choice that limits signature/proof verification per call and keeps demonstrations predictable. It is not a claim that 32 is globally optimal. Benchmark batch size, gas per receipt, pending latency and failure behavior before changing it.
 

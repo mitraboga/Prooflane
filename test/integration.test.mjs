@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import { startApplication } from '../src/server.mjs';
 import { ProoflaneClient } from '../sdk/client.mjs';
 import { actionHash, merkleTree } from '../src/protocol.mjs';
+import { HDNodeWallet, keccak256 } from 'ethers';
+import { DEV_MNEMONIC } from '../src/chain.mjs';
 
 let app, client, directory;
 const policy = overrides => ({label:'Integration test',budget:'100',maxPerReceipt:'40',ttlMinutes:60,tools:['document.digest','text.redact'],...overrides});
@@ -100,4 +102,58 @@ test('restart recovers a mined batch even when local indexing never ran',async()
   const bundle=await client.exportReceipt(r.id);
   assert.equal((await client.verify(bundle)).valid,true);
   assert.equal((await client.state()).mandates.find(m=>m.id===p.id).spent,'20');
+});
+
+test('visitor scopes isolate reads, writes, evidence exports and idempotency keys',async()=>{
+  const a='visitor-a',b='visitor-b',service=app.service;
+  const pa=await service.createMandate(policy(),a),pb=await service.createMandate(policy(),b);
+  const requestId='shared-request-id';
+  const ra=await service.execute({mandateId:pa.id,tool:'document.digest',input,requestId},a);
+  const rb=await service.execute({mandateId:pb.id,tool:'document.digest',input,requestId},b);
+  assert.notEqual(ra.id,rb.id);
+  await assert.rejects(service.execute({mandateId:pa.id,tool:'document.digest',input,requestId:'another-request-id'},b),e=>e.code==='NOT_FOUND');
+  await assert.rejects(service.anchor({mandateId:pa.id},b),e=>e.code==='NOT_FOUND');
+  await assert.rejects(service.revoke({mandateId:pa.id},b),e=>e.code==='NOT_FOUND');
+  await service.anchor({mandateId:pa.id},a);
+  await assert.rejects(service.bundle(ra.id,b),e=>e.code==='NOT_FOUND');
+  assert.equal((await service.state(b)).receipts.some(r=>r.id===ra.id),false);
+  assert.equal((await service.verify(await service.bundle(ra.id,a))).valid,true);
+});
+
+test('a lost broadcast response recovers committed signed bytes without a duplicate transaction',async()=>{
+  const service=app.service,chain=app.chain;
+  const p=await service.createMandate(policy());
+  const r=await service.execute({mandateId:p.id,tool:'document.digest',input,requestId:crypto.randomUUID()});
+  const wallet=HDNodeWallet.fromPhrase(DEV_MNEMONIC).connect(chain.provider);
+  let broadcasts=0;
+  chain.sendTransaction=async(method,args,save)=>{
+    const call=await chain.contract.getFunction(method).populateTransaction(...args);
+    const rawTransaction=await wallet.signTransaction(await wallet.populateTransaction(call));
+    const hash=keccak256(rawTransaction);
+    await save({hash,rawTransaction});
+    assert.equal((await service.store.get('SELECT raw_transaction FROM operations WHERE tx_hash=?',hash)).raw_transaction,rawTransaction);
+    const tx=await chain.provider.broadcastTransaction(rawTransaction);broadcasts++;await tx.wait();
+    throw new Error('Simulated lost HTTP response after mining');
+  };
+  try {
+    await assert.rejects(service.anchor({mandateId:p.id}),e=>e.code==='TRANSACTION_PENDING');
+    await service.reconcile();
+    assert.equal(broadcasts,1);
+    const bundle=await service.bundle(r.id);assert.equal((await service.verify(bundle)).valid,true);
+    assert.equal((await service.policy(p.id)).spent,'20');
+    assert.equal((await service.store.get('SELECT raw_transaction FROM operations WHERE tx_hash=?',bundle.anchor.transactionHash)).raw_transaction,null);
+  } finally { delete chain.sendTransaction; }
+});
+
+test('persistent daily quotas count failed attempts and survive service restarts',async()=>{
+  const service=app.service;
+  service.publicMode=true;const previous=service.limits.executions;service.limits.executions=[1,1000];
+  try {
+    const p=await service.createMandate(policy({tools:['document.digest']}),'quota-test');
+    await assert.rejects(service.execute({mandateId:p.id,tool:'text.redact',input,requestId:crypto.randomUUID()},'quota-test'),e=>e.code==='TOOL_NOT_ALLOWED');
+    await assert.rejects(service.execute({mandateId:p.id,tool:'document.digest',input,requestId:crypto.randomUUID()},'quota-test'),e=>e.code==='DEMO_QUOTA');
+    assert.equal(Number((await service.store.get("SELECT count FROM usage_counters WHERE subject=? AND category='executions'",'quota-test')).count),1);
+  } finally {service.publicMode=false;service.limits.executions=previous;}
+  await app.close();app=await startApplication({port:0,chainPort:0,dataDir:directory});client=new ProoflaneClient(app.url);
+  assert.equal(Number((await app.service.store.get("SELECT count FROM usage_counters WHERE subject=? AND category='executions'",'quota-test')).count),1);
 });

@@ -7,6 +7,8 @@ const bundle=JSON.parse(await readFile(file,'utf8'));
 const result=verifyBundle(bundle);
 const get=name=>args.includes(name)?args[args.indexOf(name)+1]:undefined;
 const rpc=get('--rpc'),address=get('--contract'),chainId=get('--chain-id');
+const confirmations=Number(get('--confirmations') ?? (chainId==='84532'?3:1));
+if(!Number.isSafeInteger(confirmations)||confirmations<1||confirmations>64)throw new Error('Confirmations must be an integer from 1 to 64.');
 if(rpc||address||chainId){
   if(!rpc||!address||!chainId){console.error('Online checks require --rpc, --contract and --chain-id from a trusted source.');process.exit(2);}
   const provider=new JsonRpcProvider(rpc);
@@ -33,6 +35,9 @@ if(rpc||address||chainId){
         try{const event=contract.interface.parseLog(log);return event?.name==='BatchAnchored'&&event.args.root.toLowerCase()===bundle.anchor.root.toLowerCase()&&event.args.mandateId.toLowerCase()===bundle.receipt.mandateId.toLowerCase();}catch{return false;}
       });
       result.checks.push({name:'Transaction provenance',valid:Boolean(provenance),detail:'Expected event exists in the stated successful transaction and block.'});
+      const block=tx?await provider.getBlock(tx.blockNumber):null;
+      const depth=tx?await provider.getBlockNumber()-tx.blockNumber+1:0;
+      result.checks.push({name:'Block confirmations',valid:Boolean(block&&block.hash.toLowerCase()===tx.blockHash.toLowerCase()&&depth>=confirmations),detail:`Requires ${confirmations} canonical block confirmations; L2 depth is not Ethereum settlement finality.`});
       result.anchoring=included?'included':'not_found';result.policyAuthenticity=authentic?'checked_onchain':'mismatch';
     }
   }catch(error){result.checks.push({name:'RPC verification',valid:false,detail:error.shortMessage||error.message});}

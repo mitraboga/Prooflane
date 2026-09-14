@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: prooflane
+    runtime: node
+    plan: free
+    region: singapore
+    repo: https://github.com/mitraboga/Prooflane
+    branch: main
+    buildCommand: npm ci --omit=optional && npm run compile
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.1
+      - key: NODE_ENV
+        value: production
+      - key: PROOFLANE_MODE
+        value: base-sepolia
+      - key: RPC_URL
+        value: https://sepolia.base.org
+      - key: CONFIRMATIONS
+        value: "3"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: OWNER_PRIVATE_KEY
+        sync: false
+      - key: AGENT_PRIVATE_KEY
+        sync: false
+      - key: CONTRACT_ADDRESS
+        sync: false
+      - key: DEPLOYMENT_BLOCK
+        sync: false

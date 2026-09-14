@@ -1,6 +1,6 @@
 # From portfolio prototype to a maintained product
 
-Prooflane's first milestone is a reproducible local system with useful failure cases. The roadmap separates what exists from work that requires additional implementation, measurement or operational evidence.
+Prooflane retains a reproducible local system and now includes a Render/Neon/Base Sepolia public configuration. Guest isolation, persistent quotas, PostgreSQL locking, a signed-transaction journal and canonical confirmation checks are implemented. See the [deployment runbook](public-deployment.md) for actual live status. This roadmap separates implementation from verified operation.
 
 ## Phase 0 — Reproducible portfolio prototype
 
@@ -24,7 +24,7 @@ Measure batch sizes 1, 2, 8, 16 and 32 on the same build. Record gas per batch/r
 
 Use the provided deployment workflow to deploy on an EVM testnet only after supplying an appropriate RPC endpoint and a separate test key. Record the actual chain, contract address, deployment transaction and source-verification outcome. Add an explicit confirmation policy and test wrong-network and replaced-deployment failures. Public testnet deployment has not been performed by the local prototype setup.
 
-Continuous integration, a pinned lockfile, 43 local tests and the benchmark report are included in this version. Invite another developer to reproduce the setup and open an issue for every manual step they need. Public testnet deployment remains future work.
+Continuous integration, a pinned lockfile, an expanded local/public/PostgreSQL test suite and the benchmark report are included. Public deployment tooling is implemented; faucet funding and a verified live deployment remain acceptance work. Invite another developer to reproduce the setup.
 
 **Exit evidence:** committed benchmark results, passing automation, independently reproduced setup and a documented testnet transaction. No mainnet funds are required.
 
@@ -46,7 +46,7 @@ If paid resources are needed, introduce an x402 adapter using the current offici
 
 Replace development key handling with separate owner and agent identities, secure secret storage, rotation and recovery. Add authentication, organization boundaries, request limits and explicit administrative authorization. Revisit mandate ID ownership, supported account types and contract change/version strategy.
 
-Move in-process coordination to a durable design: transactional reservations, an outbox or equivalent queue, relayer nonce coordination, bounded retries and event indexing checkpoints. Specify how chain reorganizations change accepted/pending states. Define backup, retention and deletion behavior for private content without implying that public commitments can be deleted.
+The public demo now uses transactional writes, database advisory locks, signed transaction intents, nonce coordination and event checkpoints. Extend this deliberately serialized design with narrower concurrency, full reorganization rollback, stuck-transaction replacement and fault-injection coverage. Define backup, retention and deletion without implying public commitments can be erased.
 
 Introduce structured logs, operational metrics, traces, health checks, alert thresholds and a recovery runbook. Load-test realistic contention and crash scenarios before selecting a larger database or adding distributed workers.
 

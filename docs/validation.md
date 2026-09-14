@@ -1,5 +1,16 @@
 # Release validation
 
+## Public-hosting migration — September 13, 2026
+
+- All 43 original local tests passed after integrating the PostgreSQL adapter and public-mode service changes.
+- Three added integration scenarios passed: visitor isolation, recovery after a lost broadcast response and durable quotas across restart.
+- Eight public configuration/HTTP tests passed, including cookie forgery/expiry, origin/host controls, TLS, unsafe keys, deployment identity and canonical confirmations.
+- JavaScript syntax checks and Solidity compilation passed; runtime remains 3,736 bytes.
+- The suite now defines 55 tests. The PostgreSQL scenario is skipped locally unless `TEST_DATABASE_URL` is set; CI supplies an isolated PostgreSQL 18 service. Consult Actions for its actual result.
+- Real Base Sepolia deployment, Render/Neon integration, public browser screenshots and live restart acceptance remain pending. The existing screenshots below and in the README show the earlier local demo.
+
+## Original local release
+
 Validated on Windows x64 with Node 24.14.1, ethers 6.17.0, Solidity 0.8.28, and native Anvil 1.7.1. Check the repository's Actions page for the independent Linux run.
 
 | Check | Observed result |
