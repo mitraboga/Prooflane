@@ -49,6 +49,8 @@ The command permits **Base Sepolia only**, persists the exact signed deployment 
 
 Success creates `deployments/base-sepolia.json` with public address, transaction, block and compiler metadata. Commit that manifest after verification. Explorer source verification is a separate task; the command verifies runtime bytecode itself and does not claim an explorer source-verification badge.
 
+Public compilation normalizes Solidity line endings to LF, so Windows deployment and Linux hosting produce identical metadata and runtime bytecode. Local compilation preserves its previous behavior to keep existing Anvil deployments compatible.
+
 ## 4. Deploy Render Free
 
 Use the dedicated Prooflane workspace. Import [`render.yaml`](../render.yaml) as a Blueprint from [this repository](https://github.com/mitraboga/Prooflane). Confirm **Free** compute and **Singapore**. The Blueprint defines one web service and no Render database.

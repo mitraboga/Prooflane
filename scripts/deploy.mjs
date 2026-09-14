@@ -9,7 +9,7 @@ const provider=rpcProvider(process.env.RPC_URL || 'https://sepolia.base.org',{ch
 try {
   const wallet=publicWallet(process.env.DEPLOYER_PRIVATE_KEY || process.env.OWNER_PRIVATE_KEY,provider,'Deployer key');
   if((await provider.getNetwork()).chainId!==84532n)throw new Error('Deployment permits Base Sepolia only.');
-  const artifact=compileProoflane();
+  const artifact=compileProoflane({normalizeSource:true});
   const directory=resolve(process.env.DATA_DIR || 'data');await mkdir(directory,{recursive:true});
   const intentPath=join(directory,'base-sepolia-deployment-intent.json');
   let intent;
