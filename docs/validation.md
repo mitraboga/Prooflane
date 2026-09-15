@@ -4,7 +4,7 @@
 
 - Two new tests passed: separate-process wallet decryption/signing, wrong-password rejection, refusal to overwrite existing files and refusal to replace an identity with a saved deployment transaction.
 - An isolated Windows PowerShell 5.1 check passed initialization and verification in separate shells, including a Unicode passphrase. Only disposable test wallets were used.
-- JavaScript syntax checks passed. The suite now defines 57 tests; the earlier 55-test PostgreSQL CI result below predates this helper change.
+- All **57 tests passed, zero skipped or failed**, in [Linux CI with PostgreSQL 18](https://github.com/mitraboga/Prooflane/actions/runs/34925601817) on September 15. Syntax checks, Solidity compilation and the dependency audit also passed (zero known npm vulnerabilities).
 - The helper preserves legacy encrypted files. A replacement wallet requires its own faucet funding; no old balance or deployment is silently migrated.
 
 ## Public-hosting migration — September 13, 2026
