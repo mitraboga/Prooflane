@@ -27,7 +27,11 @@ On Windows, from the project directory:
 ./scripts/testnet-keys.ps1 -Action Addresses
 ```
 
-`Initialize` refuses to replace existing keys. It stores Windows user-encrypted keys in the Git-ignored `data/testnet-keys.encrypted.json` and prints only addresses. This helper is an operator convenience, not a shared key-management service. Its encrypted file is tied to that Windows user; maintain a secure backup appropriate to your account.
+Choose and privately save a password/passphrase of at least 16 characters. `Initialize` saves password-encrypted Ethereum V3 keystores in the Git-ignored `data/testnet-keys.portable.json`. Before printing addresses to fund, it reloads both keys in a separate process, decrypts them and verifies a test signature. Passwords are entered with hidden input and passed to Node through stdin, never command arguments. Back up the encrypted file and keep its password separately; both are needed for recovery.
+
+Run `./scripts/testnet-keys.ps1 -Action Verify` to check access again before funding. Initialization refuses to overwrite a wallet or replace identities after a public deployment or saved deployment transaction exists.
+
+**Legacy Windows encryption failure:** if `ConvertTo-SecureString` reports “Key not valid for use in specified state,” use `./scripts/testnet-keys.ps1 -Action InitializePortable`. This explicitly creates new password-protected identities and preserves `data/testnet-keys.encrypted.json`. It does not recover the old keys or move their balance. Fund only the newly verified owner address; an earlier faucet transfer remains with the old wallet.
 
 Open the [Coinbase developer faucet](https://portal.cdp.coinbase.com/products/faucet), select **Base Sepolia / ETH**, and enter the owner address. Only free testnet ETH is required. See the [official faucet instructions](https://docs.cdp.coinbase.com/faucets/introduction/quickstart) for sign-in requirements.
 

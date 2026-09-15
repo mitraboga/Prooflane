@@ -1,5 +1,12 @@
 # Release validation
 
+## Portable operator wallets — September 14, 2026
+
+- Two new tests passed: separate-process wallet decryption/signing, wrong-password rejection, refusal to overwrite existing files and refusal to replace an identity with a saved deployment transaction.
+- An isolated Windows PowerShell 5.1 check passed initialization and verification in separate shells, including a Unicode passphrase. Only disposable test wallets were used.
+- JavaScript syntax checks passed. The suite now defines 57 tests; the earlier 55-test PostgreSQL CI result below predates this helper change.
+- The helper preserves legacy encrypted files. A replacement wallet requires its own faucet funding; no old balance or deployment is silently migrated.
+
 ## Public-hosting migration — September 13, 2026
 
 - All 43 original local tests passed after integrating the PostgreSQL adapter and public-mode service changes.

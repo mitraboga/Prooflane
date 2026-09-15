@@ -402,10 +402,11 @@ npm run lab:bitcoin
 npm audit
 ```
 
-The suite defines **55 tests**, including a PostgreSQL integration scenario that runs in CI; without `TEST_DATABASE_URL`, that scenario is skipped. See the [validation record](docs/validation.md) for observed runs.
+The suite defines **57 tests**, including a PostgreSQL integration scenario that runs in CI; without `TEST_DATABASE_URL`, that scenario is skipped. See the [validation record](docs/validation.md) for observed runs.
 
 | Suite | Tests | Main coverage |
 | --- | ---: | --- |
+| Operator wallet | 2 | Password-encrypted key recovery across processes, signature verification, wrong-password rejection and preservation of existing wallets/deployments |
 | Solidity contract | 14 | Signature/domain agreement, authorization, nonces, caps, budgets, expiry, revocation and atomic batches |
 | Protocol | 10 | Canonicalization, hashing, Merkle edge cases, schema rejection and altered bundles |
 | HTTP/service integration | 13 | Complete workflow, concurrent reservations, visitor isolation, idempotency, restart recovery, lost broadcast responses and durable quotas |
