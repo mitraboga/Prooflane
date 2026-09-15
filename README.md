@@ -33,7 +33,7 @@ An agent can call tools on someone's behalf, but an ordinary application log lea
 
 **Prooflane** is an end-to-end evidence system for that workflow. An owner publishes an agent's permissions and credit limits in a Solidity contract. A Node.js gateway executes permitted tools and signs receipts. The contract validates batches of receipts, and another party can verify an exported JSON bundle against the expected deployment.
 
-> **Current status:** public hosting support is implemented for **Render + Neon PostgreSQL + Base Sepolia**, with visitor isolation, persistent transaction recovery and free-demo limits. Account configuration and the funded testnet deployment are still pending; no live URL is claimed yet. The original **SQLite + Anvil** mode remains runnable without credentials. This is a portfolio demo with deterministic tools, not an autonomous LLM or payment service.
+> **Current status:** the [Solidity contract is deployed on Base Sepolia](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb), with its runtime bytecode and creation block independently checked. **Render + Neon PostgreSQL** hosting configuration is prepared; the first public app deployment and live acceptance checks remain pending. The original **SQLite + Anvil** mode remains runnable without credentials. This is a portfolio demo with deterministic tools, not an autonomous LLM or payment service.
 
 ### What This Project Demonstrates
 
@@ -321,6 +321,16 @@ Exit code `0` means the requested checks passed; `1` means verification failed.
 ### Public Hosting
 
 [Deployment runbook](docs/public-deployment.md) covers the exact Render settings, Neon connection, encrypted testnet-key helper, faucet funding, contract deployment and live acceptance checks. [`render.yaml`](render.yaml) explicitly selects the Free plan. Render serves the existing website and API in one process; GitHub Actions validates the code.
+
+The [public deployment manifest](deployments/base-sepolia.json) records the trusted chain configuration:
+
+| Deployment | Verified value |
+| --- | --- |
+| Network | Base Sepolia, chain `84532` |
+| Contract | [`0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb) |
+| Creation | [Block 46858133, deployment transaction](https://sepolia.basescan.org/tx/0x3add062569fdf6aaf0aeec06ca01ab5d45f7777533c62045a57659430b96ebaf) |
+
+Startup checks the deployed runtime against the pinned Solidity build. This bytecode check is separate from an explorer's source-verification badge. The public-repository Render setup uses manual deployments after passing CI.
 
 Public visitors receive a signed, HttpOnly session cookie and see only their own mandates and evidence. The server sponsors testnet gas; visitors need no wallet. Keep the cookie to revisit that workspace, and export important bundles. Clearing cookies or changing the session secret loses access to the guest workspace.
 

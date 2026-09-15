@@ -1,5 +1,12 @@
 # Release validation
 
+## Base Sepolia contract — September 15, 2026
+
+- Deployed contract [`0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb) on chain `84532`; creation block `46858133`. The [manifest](../deployments/base-sepolia.json) includes the transaction, deployer, compiler and source digest.
+- A separate read-only RPC check confirmed the successful transaction, expected deployer/address, three canonical L2 confirmations, exact runtime match, code at the creation block and absence of code in the preceding block.
+- Runtime Keccak-256: `0x9fbbcf51ec4fe94a6b0e458310e346c26f2e9a9f402f9753a7fc74d9edecf222`. This checks the deployed build; it does not claim an explorer source-verification badge or Ethereum settlement finality.
+- Render/Neon app startup and public workflow, isolation, restart and browser acceptance checks remain pending.
+
 ## Portable operator wallets — September 14, 2026
 
 - Two new tests passed: separate-process wallet decryption/signing, wrong-password rejection, refusal to overwrite existing files and refusal to replace an identity with a saved deployment transaction.
@@ -14,7 +21,7 @@
 - Eight public configuration/HTTP tests passed, including cookie forgery/expiry, origin/host controls, TLS, unsafe keys, deployment identity and canonical confirmations.
 - JavaScript syntax checks and Solidity compilation passed; runtime remains 3,736 bytes.
 - The suite defines 55 tests. All passed in [Linux CI with PostgreSQL 18](https://github.com/mitraboga/Prooflane/actions/runs/34801305582) on September 14. The PostgreSQL scenario is skipped locally unless `TEST_DATABASE_URL` is set.
-- Real Base Sepolia deployment, Render/Neon integration, public browser screenshots and live restart acceptance remain pending. The existing screenshots below and in the README show the earlier local demo.
+- Base Sepolia deployment was subsequently verified as recorded above. Render/Neon integration, public browser screenshots and live restart acceptance remain pending. The existing screenshots below and in the README show the earlier local demo.
 
 ## Original local release
 

@@ -1,0 +1,13 @@
+{
+  "network": "Base Sepolia",
+  "chainId": "84532",
+  "contractAddress": "0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb",
+  "transactionHash": "0x3add062569fdf6aaf0aeec06ca01ab5d45f7777533c62045a57659430b96ebaf",
+  "blockNumber": 46858133,
+  "deployer": "0x3b9Ba6C666784F38E8A3115b4Bb9C61fFffC45Df",
+  "compilerVersion": "0.8.28+commit.7893614a.Emscripten.clang",
+  "sourceHash": "e0218f6d1d8babeff953cc6425f30f66174ebfddc7d59afa9b38a3109d31e971",
+  "confirmations": 3,
+  "explorerUrl": "https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb",
+  "deployedAt": "2026-09-15T15:02:42.214Z"
+}

@@ -2,7 +2,7 @@
 
 One Render Free web service serves the website and Node API. Neon PostgreSQL persists evidence. An explicitly deployed Solidity contract on Base Sepolia enforces receipt policy. Local development retains SQLite and Anvil; tool behavior, signed schema and the execute → sign → anchor → verify flow are shared.
 
-**Status:** application support and deployment configuration are prepared. Faucet funding, contract deployment, Render environment configuration and live acceptance checks are pending. No working public URL is claimed yet.
+**Status:** faucet funding and Base Sepolia contract deployment are complete. The [deployment manifest](../deployments/base-sepolia.json) records contract `0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`, created in block `46858133`. Its receipt, deployer, runtime bytecode and creation block were independently checked. Render's Free-service configuration is prepared; signing-key entry, service deployment and live acceptance checks remain pending. No working public app URL is claimed yet.
 
 ## Preserve the local archive
 
