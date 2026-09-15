@@ -2,7 +2,7 @@
 
 One Render Free web service serves the website and Node API. Neon PostgreSQL persists evidence. An explicitly deployed Solidity contract on Base Sepolia enforces receipt policy. Local development retains SQLite and Anvil; tool behavior, signed schema and the execute → sign → anchor → verify flow are shared.
 
-**Status:** faucet funding and Base Sepolia contract deployment are complete. The [deployment manifest](../deployments/base-sepolia.json) records contract `0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`, created in block `46858133`. Its receipt, deployer, runtime bytecode and creation block were independently checked. Render's Free-service configuration is prepared; signing-key entry, service deployment and live acceptance checks remain pending. No working public app URL is claimed yet.
+**Status:** faucet funding and Base Sepolia contract deployment are complete. The [deployment manifest](../deployments/base-sepolia.json) records contract `0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`, created in block `46858133`. Its receipt, deployer, runtime bytecode and creation block were independently checked. Render's Free-service configuration is prepared; service creation, deployment and live acceptance checks remain pending. No working public app URL is claimed yet.
 
 ## Preserve the local archive
 
@@ -83,11 +83,19 @@ Node serves `web/dist` and the API on the same HTTPS origin. GitHub Actions vali
 | `DEPLOYMENT_BLOCK` | Exact creation block from that manifest |
 | `OWNER_PRIVATE_KEY` | Fresh funded testnet owner |
 | `AGENT_PRIVATE_KEY` | Distinct fresh testnet signer |
-| `SESSION_SECRET` | Use Render's Generate button; the Blueprint also generates this automatically |
+| `SESSION_SECRET` | At least 43 random characters; use 32 random bytes encoded as base64 (44 characters). The Blueprint generates this automatically |
 | `CONFIRMATIONS` | `3` |
 | `PUBLIC_ORIGIN` | Optional exact HTTPS origin; defaults to Render's `RENDER_EXTERNAL_URL` |
 
+For manual setup, Render's Generate button can produce a value shorter than this application's minimum. On Windows, generate a 256-bit session secret directly into the clipboard, then paste it into `SESSION_SECRET`:
+
+```powershell
+node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64'))" | Set-Clipboard
+```
+
 For Windows keys, explicitly run `./scripts/testnet-keys.ps1 -Action CopyOwner`, paste into `OWNER_PRIVATE_KEY`, then repeat `CopyAgent` for `AGENT_PRIVATE_KEY`. These commands copy to the clipboard without printing the keys. Clear the clipboard afterward. Do not put keys in chat, source files or logs.
+
+Render may require card verification when submitting a Free service, even if its configuration form was available without a card. Keep **Free ($0/month)** selected and review any temporary authorization directly in Render before proceeding; selecting Free does not waive provider identity checks.
 
 Startup checks storage, identities, origin, chain, bytecode and deployment block. Public mode never starts Anvil, falls back to SQLite or deploys a new contract. The public build omits optional Anvil binaries and reuses the compiled artifact when waking from sleep.
 
