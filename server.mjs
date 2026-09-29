@@ -3,4 +3,8 @@
 import { attachDatabasePool } from '@vercel/functions';
 import { runApplication } from './src/server.mjs';
 
-await runApplication({ attachPool: attachDatabasePool, poolOptions: { idleTimeoutMillis: 5000 } });
+let pool;
+await runApplication({ attachPool: value => { pool = value; }, poolOptions: { idleTimeoutMillis: 5000 } });
+// Startup migrations run before Vercel creates a request scope. Register after
+// startup so connection releases can use the actual request's lifecycle.
+if (pool) attachDatabasePool(pool);

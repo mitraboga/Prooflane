@@ -412,7 +412,7 @@ npm run lab:bitcoin
 npm audit
 ```
 
-The suite defines **59 tests**, including a PostgreSQL integration scenario that runs in CI; without `TEST_DATABASE_URL`, that scenario is skipped. See the [validation record](docs/validation.md) for observed runs.
+The suite defines **60 tests**, including a PostgreSQL integration scenario that runs in CI; without `TEST_DATABASE_URL`, that scenario is skipped. See the [validation record](docs/validation.md) for observed runs.
 
 | Suite | Tests | Main coverage |
 | --- | ---: | --- |

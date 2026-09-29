@@ -63,7 +63,7 @@ Guest sessions use a 30-day HMAC-signed, Secure, HttpOnly, SameSite=Lax cookie. 
 
 A process queue and PostgreSQL transaction-level advisory lock serialize mutations and owner nonces. Business writes commit on a separate connection while the lock is held. Before broadcast, an operation stores the exact signed transaction and hash. Uncertain sends are reconciled before new mutations; retries rebroadcast those bytes instead of creating a new transaction. Confirmed operations remove their raw transaction bytes.
 
-The event cursor scans at most five 2,000-block ranges per public reconciliation. It resumes across restarts and discovers other relayers. Receipts with a nonce inconsistent with on-chain state block new execution until indexing catches up. Settlement and online verification require canonical block hashes and configured confirmation depth. Deep reorganization rollback and replacing permanently stuck transactions require operator recovery; the index is not a production chain indexer.
+The event cursor scans at most five 1,000-block ranges per public reconciliation. It resumes across restarts and discovers other relayers. Receipts with a nonce inconsistent with on-chain state block new execution until indexing catches up. Settlement and online verification require canonical block hashes and configured confirmation depth. Deep reorganization rollback and replacing permanently stuck transactions require operator recovery; the index is not a production chain indexer.
 
 Local Anvil checkpoints preserve the development chain and historical logs. A hard crash before checkpointing can lose local chain changes. Neither mode promises exactly-once external side effects: tools here are deterministic and have no external side effects.
 

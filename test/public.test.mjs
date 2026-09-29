@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { request } from 'node:http';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { ProoflaneService } from '../src/service.mjs';
 import { createSession, readSession, RequestLimiter } from '../src/session.mjs';
 import { readConfig } from '../src/config.mjs';
 import { publicWallet, validatePublicDeployment, confirmedReceipt } from '../src/chain.mjs';
@@ -8,6 +12,21 @@ import { createHttpServer } from '../src/server.mjs';
 import { createStore, postgresOptions } from '../src/store.mjs';
 
 const secret = 'test-only-session-secret-'.repeat(3);
+
+test('public indexing respects RPC range limits and resumes from its durable cursor', async () => {
+  const directory=await mkdtemp(join(tmpdir(),'prooflane-index-pages-'));
+  const ranges=[];
+  const chain={provider:{getBlockNumber:async()=>6020},owner:{getAddress:async()=>`0x${'34'.repeat(20)}`},agent:{address:`0x${'56'.repeat(20)}`},deployment:{address:`0x${'12'.repeat(20)}`,chainId:'84532',blockNumber:10},network:{confirmations:3},artifact:{abi:[]},
+    contract:{filters:{BatchAnchored:()=>null},queryFilter:async(_filter,from,to)=>{assert.ok(to-from+1<=1000,'provider rejects larger ranges');ranges.push([from,to]);return [];}}};
+  let service;
+  try {
+    service=new ProoflaneService(chain,directory,{publicMode:true});await service.initialize();await service.reconcile();
+    assert.equal(ranges.length,5);assert.deepEqual(ranges[0],[10,1009]);assert.deepEqual(ranges[4],[4010,5009]);
+    await service.close();service=new ProoflaneService(chain,directory,{publicMode:true});await service.initialize();await service.reconcile();
+    assert.deepEqual(ranges.slice(5),[[5010,6009],[6010,6018]]);
+    const count=ranges.length;await service.reconcile();assert.equal(ranges.length,count,'already indexed blocks are not scanned again');
+  } finally {if(service)await service.close();await rm(directory,{recursive:true,force:true});}
+});
 test('guest sessions reject forged, expired, duplicate and differently signed cookies', () => {
   const now = Date.now(), session = createSession(secret, now);
   assert.equal(readSession(session.cookie, secret, now), session.scope);

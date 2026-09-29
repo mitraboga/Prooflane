@@ -199,7 +199,8 @@ export class ProoflaneService {
     const cursor = await this.store.get('SELECT value FROM app_metadata WHERE key=?', 'indexed_block');
     let from = Math.max(this.deployment.blockNumber, Number(cursor?.value ?? this.deployment.blockNumber - 1) + 1);
     for (let page = 0; from <= tip && page < (this.publicMode ? 5 : 100); page++) {
-      const to = Math.min(tip, from + 1999);
+      // Base's public RPC caps eth_getLogs at 1,000 blocks per request.
+      const to = Math.min(tip, from + (this.publicMode ? 999 : 1999));
       for (const event of await this.contract.queryFilter(this.contract.filters.BatchAnchored(), from, to)) await this.indexEvent(event);
       await this.store.run('INSERT INTO app_metadata (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', 'indexed_block', String(to));
       from = to + 1;
