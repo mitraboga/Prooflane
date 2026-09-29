@@ -1,8 +1,8 @@
-# Public deployment: Render, Neon and Base Sepolia
+# Public deployment: Vercel, Neon and Base Sepolia
 
-One Render Free web service serves the website and Node API. Neon PostgreSQL persists evidence. An explicitly deployed Solidity contract on Base Sepolia enforces receipt policy. Local development retains SQLite and Anvil; tool behavior, signed schema and the execute → sign → anchor → verify flow are shared.
+One Vercel Hobby Node application serves the website and API on the same HTTPS origin. Neon PostgreSQL persists evidence. An explicitly deployed Solidity contract on Base Sepolia enforces receipt policy. Local development retains SQLite and Anvil; tool behavior, signed schema and the execute → sign → anchor → verify flow are shared.
 
-**Status:** faucet funding and Base Sepolia contract deployment are complete. The [deployment manifest](../deployments/base-sepolia.json) records contract `0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`, created in block `46858133`. Its receipt, deployer, runtime bytecode and creation block were independently checked. Render's Free-service configuration is prepared; service creation, deployment and live acceptance checks remain pending. No working public app URL is claimed yet.
+**Status:** faucet funding and Base Sepolia contract deployment are complete. The [deployment manifest](../deployments/base-sepolia.json) records contract `0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`, created in block `46858133`. Its receipt, deployer, runtime bytecode and creation block were independently checked. Vercel deployment and live acceptance checks are in progress; no working public app URL is claimed yet. Render required card verification before creating a service, so the no-card deployment uses Vercel instead.
 
 ## Preserve the local archive
 
@@ -10,13 +10,15 @@ Keep the existing `data/` directory and Anvil snapshot. Public mode starts a sep
 
 ## 1. Configure Neon
 
-Use a dedicated Free PostgreSQL project in Singapore. In **Connect**, select the production branch and pooled connection. Paste that connection string directly into Render's `DATABASE_URL` secret field. Do not commit it or create an extra plaintext copy.
+Use a dedicated Free PostgreSQL project in Singapore. In **Connect**, select the production branch and pooled connection. Paste that connection string directly into Vercel's production `DATABASE_URL` secret field. Do not commit it or create an extra plaintext copy.
 
 The adapter verifies remote TLS certificates, uses a small connection pool and initializes the schema on startup. Transaction-level advisory locks support transaction pooling. A stored fingerprint prevents pairing an existing database with a different chain, contract, owner or agent.
 
 Tables hold mandates, receipts, batches, attempts, signed transaction intents, daily counters and indexing checkpoints. Full inputs/outputs stay off chain; exported bundles contain them. Use synthetic documents.
 
 ## 2. Create and fund testnet identities
+
+The existing Prooflane deployment already has funded identities and an encrypted wallet file. Reuse them. This section describes provisioning a separate deployment from scratch.
 
 The **owner** pays testnet gas for mandates, anchoring and revocation. The separate **agent** signs receipts off chain and needs no gas. Visitors need no wallet.
 
@@ -39,6 +41,8 @@ On other systems, use a trusted wallet/password manager to create distinct testn
 
 ## 3. Deploy Solidity once
 
+For the existing project, reuse the committed deployment manifest and skip this step.
+
 ```powershell
 ./scripts/testnet-keys.ps1 -Action Deploy
 ```
@@ -55,39 +59,42 @@ Success creates `deployments/base-sepolia.json` with public address, transaction
 
 Public compilation normalizes Solidity line endings to LF, so Windows deployment and Linux hosting produce identical metadata and runtime bytecode. Local compilation preserves its previous behavior to keep existing Anvil deployments compatible.
 
-## 4. Deploy Render Free
+## 4. Deploy Vercel Hobby
 
-Use the dedicated Prooflane workspace. The current setup uses **New → Web Service → Public Git Repository** with `https://github.com/mitraboga/Prooflane`, branch `main`, no root directory, **Free** compute and **Singapore**. Enter the settings below. Render requested card verification for Blueprint creation in this workspace; the ordinary Free Web Service form was available without that step. No paid service is selected.
+Import `mitraboga/Prooflane`, branch `main`, into a **Hobby** project. Select the **Node** preset and repository root `./`. [`vercel.json`](../vercel.json) sets the build, Singapore region, Fluid Compute and a 300-second request limit. Node.js 24 is required. Keep secrets scoped to **Production**; preview deployments must not receive the production database or signing keys.
 
-[`render.yaml`](../render.yaml) remains the equivalent Blueprint configuration for a workspace that supports that flow. It defines one web service and no Render database. Public-repository services use manual deployments; GitHub Actions still validates every push. After checks pass, use **Manual Deploy → Deploy latest commit**. Automatic deployments require a supported linked Git provider configuration. See [Render's deployment methods](https://render.com/docs/web-services).
+Vercel detects the root [`server.mjs`](../server.mjs) entry point and captures its Node HTTP server. It shares the standalone application's routes and startup checks. The entry point attaches the PostgreSQL pool to Vercel's lifecycle so idle connections close before an instance is suspended. Database state and transaction recovery never depend on a warm instance or local disk. See [native Node server support](https://vercel.com/docs/functions/runtimes/node-js) and [connection pooling](https://vercel.com/kb/guide/connection-pooling-with-functions).
 
 | Setting | Value |
 | --- | --- |
-| Node | 24.14.1 |
-| Build | `npm ci --omit=optional && npm run compile` |
-| Start | `npm start` |
+| Node | `24.x` |
+| Install | `npm ci --omit=optional` |
+| Build | `npm run compile` |
+| Entry point | `server.mjs`; standalone/local mode still uses `npm start` |
 | Health | `/api/health` |
-| Bind | `0.0.0.0` and Render's `PORT` |
-| Auto-deploy | Off for the current public-repository setup; the Blueprint uses connected CI checks |
+| Runtime | Fluid Compute, Singapore `sin1`, maximum 300 seconds/request |
+| Included files | `web/dist`, compiled contract artifact and pinned Solidity source |
+| Deployment | GitHub integration; inspect both Vercel build and GitHub Actions results |
 
-Node serves `web/dist` and the API on the same HTTPS origin. GitHub Actions validates code; Render hosts it. GitHub Pages and Streamlit are not used.
+Node serves `web/dist` and the API on the same HTTPS origin. GitHub Actions validates code; Vercel hosts it. No frontend framework rewrite or separate API domain is required.
 
 | Variable | Source |
 | --- | --- |
-| `NODE_VERSION` | `24.14.1` |
 | `NODE_ENV` | `production` |
 | `PROOFLANE_MODE` | `base-sepolia` |
-| `DATABASE_URL` | Neon pooled connection, entered directly in Render secrets |
+| `DATABASE_URL` | Neon pooled connection, entered directly in Vercel secrets |
 | `RPC_URL` | `https://sepolia.base.org`, or another trusted Base Sepolia HTTPS RPC |
 | `CONTRACT_ADDRESS` | Verified deployment manifest |
 | `DEPLOYMENT_BLOCK` | Exact creation block from that manifest |
-| `OWNER_PRIVATE_KEY` | Fresh funded testnet owner |
-| `AGENT_PRIVATE_KEY` | Distinct fresh testnet signer |
-| `SESSION_SECRET` | At least 43 random characters; use 32 random bytes encoded as base64 (44 characters). The Blueprint generates this automatically |
+| `OWNER_PRIVATE_KEY` | Existing funded testnet owner for this deployment |
+| `AGENT_PRIVATE_KEY` | Existing distinct testnet receipt signer |
+| `SESSION_SECRET` | At least 43 random characters; use 32 random bytes encoded as base64 (44 characters) |
 | `CONFIRMATIONS` | `3` |
-| `PUBLIC_ORIGIN` | Optional exact HTTPS origin; defaults to Render's `RENDER_EXTERNAL_URL` |
+| `PUBLIC_ORIGIN` | Optional exact HTTPS origin; defaults to `https://` plus Vercel's `VERCEL_PROJECT_PRODUCTION_URL` |
 
-For manual setup, Render's Generate button can produce a value shorter than this application's minimum. On Windows, generate a 256-bit session secret directly into the clipboard, then paste it into `SESSION_SECRET`:
+Enable Vercel's system environment variables. The application trusts its configured production origin, not arbitrary preview URLs or incoming Host headers. If using a custom domain, set `PUBLIC_ORIGIN` explicitly without a trailing slash.
+
+On Windows, generate a 256-bit session secret directly into the clipboard, then paste it into `SESSION_SECRET`:
 
 ```powershell
 node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64'))" | Set-Clipboard
@@ -95,20 +102,22 @@ node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('b
 
 For Windows keys, explicitly run `./scripts/testnet-keys.ps1 -Action CopyOwner`, paste into `OWNER_PRIVATE_KEY`, then repeat `CopyAgent` for `AGENT_PRIVATE_KEY`. These commands copy to the clipboard without printing the keys. Clear the clipboard afterward. Do not put keys in chat, source files or logs.
 
-Render may require card verification when submitting a Free service, even if its configuration form was available without a card. Keep **Free ($0/month)** selected and review any temporary authorization directly in Render before proceeding; selecting Free does not waive provider identity checks.
+Select **Deploy** only after all production values are present. Read the assigned production domain from Vercel, and ensure production access is public so visitors do not need a Vercel account. A successful build alone does not prove that database access, signing or anchoring works; run the acceptance steps below.
 
-Startup checks storage, identities, origin, chain, bytecode and deployment block. Public mode never starts Anvil, falls back to SQLite or deploys a new contract. The public build omits optional Anvil binaries and reuses the compiled artifact when waking from sleep.
+Startup checks storage, identities, origin, chain, bytecode and deployment block. On Vercel, missing public mode fails closed rather than starting local development keys. Public mode never starts Anvil, falls back to SQLite or deploys a new contract. The build omits optional Anvil binaries and reuses the compiled artifact on cold starts. `.vercelignore` also excludes local wallets and environment files from CLI uploads.
+
+The retained [`render.yaml`](../render.yaml) is an alternative standalone Node deployment configuration. It is not the active no-card hosting route.
 
 ## 5. Verify the assigned public URL
 
-Use the HTTPS URL assigned by Render, not an assumed service name. After readiness succeeds:
+Use the production HTTPS URL assigned by Vercel, not an assumed project name. After readiness succeeds:
 
 1. Confirm **Base Sepolia / 84532**, the verified contract and explorer links in the console.
 2. Create a mandate, execute digest/redact and demonstrate a summarize denial.
 3. Anchor both receipts, inspect the explorer transaction, export and verify a bundle.
 4. Modify its output and confirm verification fails.
 5. Check that another browser/private session cannot list, mutate or export the first visitor's evidence.
-6. Restart Render and verify persistence with the original cookie and exported bundle.
+6. Redeploy the same version to a fresh instance and verify persistence with the original cookie and exported bundle.
 7. Publish the observed URL, manifest and new screenshots after these checks pass.
 
 Independent verification uses an address and RPC obtained from a trusted source:
@@ -130,10 +139,12 @@ The SDK accepts `new ProoflaneClient(publicUrl)` and manages a visitor cookie. A
 | HTTP | 60/minute/session, 300/minute/process |
 | Input/batch | 5,000 text characters, 100 KB body, 32 pending receipts/mandate |
 
-Daily counters persist in PostgreSQL and reset at 00:00 UTC. HTTP counters reset on restart. Limits constrain demo use but do not establish identity or guarantee protection against denial of service. Evidence is not automatically deleted to make room; retention requires operator review.
+Daily counters persist in PostgreSQL and reset at 00:00 UTC. HTTP counters are per instance and reset on cold starts; they are not a distributed rate limiter. Database quotas and advisory locks apply across instances. Limits constrain demo use but do not establish identity or guarantee protection against denial of service. Evidence is not automatically deleted to make room; retention requires operator review.
 
 A process queue and PostgreSQL advisory lock serialize mutations and owner nonces. Signed transactions commit before broadcast. An uncertain send blocks new mutations until the same hash is reconciled. A persistent cursor scans up to five 2,000-block pages per recovery pass; repeated refreshes progress an index behind after a long idle period. Do not delete unresolved intents or casually replace keys. Reverted operations are marked failed; permanently stuck transactions and deep reorganizations need operator recovery.
 
 Settlement and online verification check three canonical L2 blocks by default. This is **testnet inclusion depth**, not Ethereum settlement finality. A mismatching block/event fails verification; the database does not implement full reorganization rollback.
 
-[Render Free](https://render.com/docs/free) can sleep after 15 idle minutes and loses local filesystem changes. Neon and Base hold the public application's state separately. Render currently grants 750 free instance hours/month per workspace, shared by its free web services. Cold starts, database/RPC quotas and faucet gas can interrupt demonstrations. Keep the local mode available for interviews.
+[Vercel Hobby](https://vercel.com/docs/plans/hobby) is for personal, non-commercial projects and has usage limits; exceeding them can pause access. [Fluid Compute requests](https://vercel.com/docs/functions/limitations) have a 300-second maximum on Hobby. A transaction confirmation wait is bounded at 120 seconds, but database/RPC delays and queued requests can still time out. Signed transaction intents persist before broadcast and are recovered on a later request. Reconciliation is request-driven; it does not require a permanent background worker.
+
+Neon and Base hold application state independently of Vercel instances. Cold starts, database/RPC quotas and faucet gas can interrupt demonstrations. Keep the local mode available for interviews. No free tier is an uptime guarantee.

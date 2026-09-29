@@ -10,7 +10,9 @@ export function readConfig(options = {}, env = process.env) {
   const mode = options.mode ?? env.PROOFLANE_MODE ?? 'local';
   if (!['local', 'base-sepolia'].includes(mode)) throw new Error('PROOFLANE_MODE must be local or base-sepolia.');
   const publicMode = mode === 'base-sepolia';
-  const publicOrigin = options.publicOrigin ?? env.PUBLIC_ORIGIN ?? env.RENDER_EXTERNAL_URL ?? '';
+  if (env.VERCEL === '1' && !publicMode) throw new Error('Vercel requires PROOFLANE_MODE=base-sepolia; local development keys cannot be hosted.');
+  const vercelOrigin = env.VERCEL === '1' && env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}` : '';
+  const publicOrigin = options.publicOrigin ?? env.PUBLIC_ORIGIN ?? env.RENDER_EXTERNAL_URL ?? vercelOrigin;
   const databaseUrl = options.databaseUrl ?? env.DATABASE_URL;
   const sessionSecret = options.sessionSecret ?? env.SESSION_SECRET;
   if (publicMode) {
@@ -18,7 +20,7 @@ export function readConfig(options = {}, env = process.env) {
     try { origin = new URL(publicOrigin); } catch { throw new Error('PUBLIC_ORIGIN must be an HTTPS origin.'); }
     if (origin.protocol !== 'https:' || origin.origin !== publicOrigin || origin.username || origin.password) throw new Error('PUBLIC_ORIGIN must be the exact HTTPS origin without a trailing slash.');
     if (!databaseUrl) throw new Error('Public mode requires DATABASE_URL for persistent PostgreSQL storage.');
-    // Render generates 32 random bytes as base64 (44 characters with padding).
+    // A 256-bit random secret encoded as base64 has 44 characters with padding.
     if (typeof sessionSecret !== 'string' || sessionSecret.length < 43) throw new Error('Public mode requires SESSION_SECRET with at least 43 random characters; use a 256-bit generated secret.');
   }
   return {

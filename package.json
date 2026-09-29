@@ -20,6 +20,7 @@
     "deploy:testnet": "node scripts/deploy.mjs"
   },
   "dependencies": {
+    "@vercel/functions": "3.9.9",
     "ethers": "6.17.0",
     "pg": "8.23.0",
     "solc": "0.8.28"

@@ -1,0 +1,6 @@
+data/
+.env
+.env.*
+coverage/
+*.log
+.sites-runtime/

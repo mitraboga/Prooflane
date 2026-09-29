@@ -1,11 +1,18 @@
 # Release validation
 
+## Vercel deployment preparation — September 28, 2026
+
+- Added a native Node entry point, explicit artifact/site bundling, Singapore region and 300-second Fluid Compute limit. Production retains Neon PostgreSQL and the existing Base Sepolia contract.
+- All 10 focused public-mode tests pass, including rejection of local mode on Vercel, trusted production-origin selection and database-pool lifecycle wiring. Syntax checks and Solidity compilation pass; the compiled public runtime still matches the September 15 deployment.
+- Dependency audit reports zero known vulnerabilities with pinned `@vercel/functions` 3.9.9.
+- Render service creation was stopped at card verification. Vercel deployment and public acceptance checks remain pending; existing screenshots show the earlier local demo.
+
 ## Base Sepolia contract — September 15, 2026
 
 - Deployed contract [`0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb) on chain `84532`; creation block `46858133`. The [manifest](../deployments/base-sepolia.json) includes the transaction, deployer, compiler and source digest.
 - A separate read-only RPC check confirmed the successful transaction, expected deployer/address, three canonical L2 confirmations, exact runtime match, code at the creation block and absence of code in the preceding block.
 - Runtime Keccak-256: `0x9fbbcf51ec4fe94a6b0e458310e346c26f2e9a9f402f9753a7fc74d9edecf222`. This checks the deployed build; it does not claim an explorer source-verification badge or Ethereum settlement finality.
-- Render/Neon app startup and public workflow, isolation, restart and browser acceptance checks remain pending.
+- Application deployment and public workflow, isolation, restart and browser acceptance checks were still pending at this checkpoint; see the latest entry above.
 
 ## Portable operator wallets — September 14, 2026
 

@@ -21,7 +21,7 @@ export class ProoflaneService {
     const { rpc, provider, owner, agent, contract, deployment, artifact, snapshot } = chain;
     Object.assign(this, { rpc, provider, owner, agent, contract, deployment, artifact, snapshot });
     this.chain = chain;
-    this.store = createStore({ filename: join(dataDir, 'prooflane.sqlite'), databaseUrl: options.databaseUrl, poolOptions: options.poolOptions });
+    this.store = createStore({ filename: join(dataDir, 'prooflane.sqlite'), databaseUrl: options.databaseUrl, poolOptions: options.poolOptions, attachPool: options.attachPool });
     this.db = this.store.db;
     this.publicMode = options.publicMode ?? false;
     this.network = chain.network;

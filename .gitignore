@@ -6,5 +6,6 @@ data/
 coverage/
 artifacts/
 .sites-runtime/
+.vercel/
 *.log
 .DS_Store

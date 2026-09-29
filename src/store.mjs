@@ -84,7 +84,7 @@ export function postgresOptions(databaseUrl) {
     application_name: 'prooflane' };
 }
 
-export function createStore({ filename, databaseUrl, poolOptions = {} }) {
+export function createStore({ filename, databaseUrl, poolOptions = {}, attachPool }) {
   const context = new AsyncLocalStorage();
   if (!databaseUrl) {
     const db = openStore(filename);
@@ -105,6 +105,9 @@ export function createStore({ filename, databaseUrl, poolOptions = {} }) {
   const pool = new pg.Pool({ ...postgresOptions(databaseUrl), ...poolOptions });
   // An idle connection failure must not become an unhandled EventEmitter error.
   pool.on('error', () => {});
+  // The hosting adapter closes idle connections before suspending an instance.
+  // Local and standalone Node deployments need no platform lifecycle hook.
+  if (attachPool) attachPool(pool);
   const query = (sql, params) => {
     let index = 0;
     return (context.getStore() || pool).query(sql.replace(/\?/g, () => `$${++index}`), params);

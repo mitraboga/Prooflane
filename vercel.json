@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "node",
+  "fluid": true,
+  "installCommand": "npm ci --omit=optional",
+  "buildCommand": "npm run compile",
+  "regions": ["sin1"],
+  "functions": {
+    "server.mjs": {
+      "maxDuration": 300,
+      "includeFiles": "{web/dist/**,artifacts/Prooflane.json,contracts/Prooflane.sol}",
+      "excludeFiles": "{data/**,test/**,docs/**,.env,.env.*,node_modules/@foundry-rs/**}"
+    }
+  }
+}

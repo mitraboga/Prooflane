@@ -4,7 +4,7 @@
 
 “Prooflane is a policy-controlled tool gateway with portable execution receipts. An owner sets an agent's permitted actions and credit limits in a Solidity contract. The gateway runs deterministic tools and signs input/output commitments using EIP-712. Receipts are batched into Merkle roots, and a verifier checks their signatures, content integrity and contract acceptance. I built the UI, API, PostgreSQL/SQLite persistence, SDK, contracts and verification workflow, including replay and crash-recovery handling.”
 
-State that this is a portfolio demo with a Render/Neon/Base Sepolia configuration and a local SQLite/Anvil fallback. Refer to the deployment runbook for the actual live status. The summarization tool is extractive, and credits are not money. There is no x402 or ERC-8004 integration yet.
+State that this is a portfolio demo with a Vercel/Neon/Base Sepolia configuration and a local SQLite/Anvil mode. Refer to the deployment runbook for the actual live status. The summarization tool is extractive, and credits are not money. There is no x402 or ERC-8004 integration yet.
 
 ## Three truthful resume bullets
 

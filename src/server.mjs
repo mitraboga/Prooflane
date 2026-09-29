@@ -71,7 +71,7 @@ export async function startApplication(options = {}) {
   const chain = await startChain({ ...config, port: config.chainPort });
   let service;
   try {
-    service = new ProoflaneService(chain, config.dataDir, { databaseUrl:config.databaseUrl, publicMode:config.publicMode, poolOptions:options.poolOptions });
+    service = new ProoflaneService(chain, config.dataDir, { databaseUrl:config.databaseUrl, publicMode:config.publicMode, poolOptions:options.poolOptions, attachPool:options.attachPool });
     await service.initialize();
     await service.reconcile();
   } catch (error) { if (service) await service.close(); await chain.close(); throw error; }
@@ -81,9 +81,9 @@ export async function startApplication(options = {}) {
   return { server, service, chain, config, url:config.publicOrigin || `http://127.0.0.1:${server.address().port}`, async close() { await new Promise(resolveClose => server.close(resolveClose)); await service.close(); await chain.close(); } };
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+export async function runApplication(options = {}) {
   let app;
-  try { app = await startApplication(); }
+  try { app = await startApplication(options); }
   catch (error) { console.error(process.env.PROOFLANE_MODE === 'base-sepolia' ? 'Public startup failed. Check database, signing identities, RPC, deployment address and block settings.' : error); process.exit(1); }
   console.log(`Prooflane ready: ${app.url}`);
   console.log(`Network: ${app.chain.network.name}; database: ${app.service.store.kind}`);
@@ -91,3 +91,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const stop = async () => { await app.close(); process.exit(0); };
   process.once('SIGINT',stop); process.once('SIGTERM',stop);
 }
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await runApplication();

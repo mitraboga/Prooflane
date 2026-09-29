@@ -33,7 +33,7 @@ An agent can call tools on someone's behalf, but an ordinary application log lea
 
 **Prooflane** is an end-to-end evidence system for that workflow. An owner publishes an agent's permissions and credit limits in a Solidity contract. A Node.js gateway executes permitted tools and signs receipts. The contract validates batches of receipts, and another party can verify an exported JSON bundle against the expected deployment.
 
-> **Current status:** the [Solidity contract is deployed on Base Sepolia](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb), with its runtime bytecode and creation block independently checked. **Render + Neon PostgreSQL** hosting configuration is prepared; the first public app deployment and live acceptance checks remain pending. The original **SQLite + Anvil** mode remains runnable without credentials. This is a portfolio demo with deterministic tools, not an autonomous LLM or payment service.
+> **Current status:** the [Solidity contract is deployed on Base Sepolia](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb), with its runtime bytecode and creation block independently checked. **Vercel Hobby + Neon PostgreSQL** deployment is in progress; public acceptance checks remain pending. The original **SQLite + Anvil** mode remains runnable without credentials. This is a portfolio demo with deterministic tools, not an autonomous LLM or payment service.
 
 ### What This Project Demonstrates
 
@@ -53,7 +53,7 @@ The intended use case is a tool gateway whose consumers need portable evidence o
 | Interface | HTML, CSS, vanilla JavaScript | Responsive console and verifier with no frontend build step |
 | API and orchestration | Node.js 24+, native HTTP, ES modules | Request validation, execution, signing and settlement in readable modules |
 | Persistence | Neon PostgreSQL with `pg` 8.23.0; SQLite WAL for local development | Receipts, content, reservations, scoped request IDs, transaction intents and recovery cursors |
-| Hosting | One Render Free Node web service | Serves the website and API together over HTTPS; no separate frontend server |
+| Hosting | Vercel Hobby, Node.js with Fluid Compute | Serves the website and API together over HTTPS; PostgreSQL state survives instance suspension |
 | Ethereum client | ethers 6.17.0 | Typed-data signing, ABI encoding, deployment, transactions and event reads |
 | Contract | Solidity 0.8.28 | Deterministic policy enforcement and receipt acceptance |
 | Public chain | Base Sepolia, chain ID `84532` | Existing Solidity deployment, testnet gas, canonical block confirmation checks and explorer links |
@@ -64,7 +64,7 @@ The intended use case is a tool gateway whose consumers need portable evidence o
 
 ```mermaid
 flowchart LR
-  UI[Evidence console / SDK] --> API[Node.js tool gateway on Render]
+  UI[Evidence console / SDK] --> API[Node.js tool gateway on Vercel]
   API --> DB[(Neon PostgreSQL: content and receipts)]
   API --> T[Deterministic tools]
   T --> S[EIP-712 agent signature]
@@ -320,7 +320,7 @@ Exit code `0` means the requested checks passed; `1` means verification failed.
 
 ### Public Hosting
 
-[Deployment runbook](docs/public-deployment.md) covers the exact Render settings, Neon connection, encrypted testnet-key helper, faucet funding, contract deployment and live acceptance checks. [`render.yaml`](render.yaml) explicitly selects the Free plan. Render serves the existing website and API in one process; GitHub Actions validates the code.
+[Deployment runbook](docs/public-deployment.md) covers Vercel settings, Neon connection, encrypted testnet-key helpers, contract deployment and live acceptance checks. [`vercel.json`](vercel.json) selects native Node hosting in Singapore with Fluid Compute and a 300-second request limit. Vercel serves the existing website and API together; GitHub Actions validates the code. PostgreSQL connection pooling integrates with instance suspension, while persistent transaction intents and advisory locks support recovery across instances.
 
 The [public deployment manifest](deployments/base-sepolia.json) records the trusted chain configuration:
 
@@ -330,7 +330,7 @@ The [public deployment manifest](deployments/base-sepolia.json) records the trus
 | Contract | [`0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb) |
 | Creation | [Block 46858133, deployment transaction](https://sepolia.basescan.org/tx/0x3add062569fdf6aaf0aeec06ca01ab5d45f7777533c62045a57659430b96ebaf) |
 
-Startup checks the deployed runtime against the pinned Solidity build. This bytecode check is separate from an explorer's source-verification badge. The public-repository Render setup uses manual deployments after passing CI.
+Startup checks the deployed runtime against the pinned Solidity build. This bytecode check is separate from an explorer's source-verification badge. Production secrets are scoped to the Vercel production environment. The retained Render configuration is an alternative; Render card verification was not completed.
 
 Public visitors receive a signed, HttpOnly session cookie and see only their own mandates and evidence. The server sponsors testnet gas; visitors need no wallet. Keep the cookie to revisit that workspace, and export important bundles. Clearing cookies or changing the session secret loses access to the guest workspace.
 
@@ -339,7 +339,7 @@ Public visitors receive a signed, HttpOnly session cookie and see only their own
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `PROOFLANE_MODE` | `local` | `local` or `base-sepolia`; public mode fails startup if required settings are missing |
-| `PORT` | `3000` locally; provided by Render | Browser/API port |
+| `PORT` | `3000` locally; captured internally by Vercel | Browser/API port |
 | `CHAIN_PORT` | `8545` | Local EVM RPC port |
 | `DATA_DIR` | `./data` | SQLite and persistent chain data |
 | `PROOFLANE_URL` | `http://127.0.0.1:3000` | SDK example's gateway URL |
@@ -412,7 +412,7 @@ npm run lab:bitcoin
 npm audit
 ```
 
-The suite defines **57 tests**, including a PostgreSQL integration scenario that runs in CI; without `TEST_DATABASE_URL`, that scenario is skipped. See the [validation record](docs/validation.md) for observed runs.
+The suite defines **59 tests**, including a PostgreSQL integration scenario that runs in CI; without `TEST_DATABASE_URL`, that scenario is skipped. See the [validation record](docs/validation.md) for observed runs.
 
 | Suite | Tests | Main coverage |
 | --- | ---: | --- |
@@ -482,7 +482,9 @@ Prooflane/
 ├── labs/bitcoin.mjs           # Educational Bitcoin exercises
 ├── test/                      # Contract, protocol, HTTP, persistence and PostgreSQL tests
 ├── docs/                      # Protocol, API, design, screenshots and interview notes
-├── render.yaml               # Render Free deployment configuration
+├── server.mjs                # Vercel Node entry point and database lifecycle
+├── vercel.json               # Vercel build, region, bundling and duration
+├── render.yaml               # Alternative standalone Render deployment
 ├── .github/workflows/ci.yml   # Automated validation with PostgreSQL
 └── SECURITY.md                # Trust boundaries and operating guidance
 ```

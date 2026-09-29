@@ -57,7 +57,7 @@ A mandate revoked or expired today may have valid receipts accepted earlier. Rep
 
 ## Public persistence, sessions and recovery
 
-Render serves both UI and API. Neon holds labels, full content, receipts, attempts, usage counters, operation intents and indexing checkpoints. The public EIP-712 domain uses chain 84532 and the configured contract; SQLite/Anvil retain chain 31337 for local development. Existing local signatures cannot be relabeled as public evidence.
+Vercel serves both UI and API through the same Node HTTP application. Neon holds labels, full content, receipts, attempts, usage counters, operation intents and indexing checkpoints. Vercel's pool lifecycle hook closes idle database connections before suspension; PostgreSQL advisory locks and daily quotas coordinate multiple instances. Per-process HTTP counters are an additional best-effort limit, not a distributed limiter. The public EIP-712 domain uses chain 84532 and the configured contract; SQLite/Anvil retain chain 31337 for local development. Existing local signatures cannot be relabeled as public evidence.
 
 Guest sessions use a 30-day HMAC-signed, Secure, HttpOnly, SameSite=Lax cookie. Every object read/write and export is scoped to that visitor. Request IDs are namespaced by scope. Verification accepts deliberately shared bundles but never lets them choose the trusted RPC or deployment. Visitors share server-operated demo keys and do not need wallets.
 

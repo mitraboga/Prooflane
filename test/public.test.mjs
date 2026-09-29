@@ -5,7 +5,7 @@ import { createSession, readSession, RequestLimiter } from '../src/session.mjs';
 import { readConfig } from '../src/config.mjs';
 import { publicWallet, validatePublicDeployment, confirmedReceipt } from '../src/chain.mjs';
 import { createHttpServer } from '../src/server.mjs';
-import { postgresOptions } from '../src/store.mjs';
+import { createStore, postgresOptions } from '../src/store.mjs';
 
 const secret = 'test-only-session-secret-'.repeat(3);
 test('guest sessions reject forged, expired, duplicate and differently signed cookies', () => {
@@ -39,6 +39,21 @@ test('remote PostgreSQL verifies TLS even when the URL tries to disable it', () 
   assert.equal(options.ssl.rejectUnauthorized,true);
   assert.equal(new URL(options.connectionString).searchParams.has('sslmode'),false);
   assert.equal(postgresOptions('postgres://user:password@localhost/test').ssl,false);
+});
+
+test('Vercel requires public mode and trusts only a configured production origin', () => {
+  const env = {VERCEL:'1',PROOFLANE_MODE:'base-sepolia',VERCEL_PROJECT_PRODUCTION_URL:'prooflane.example',DATABASE_URL:'postgres://test:test@localhost/test',SESSION_SECRET:secret};
+  assert.equal(readConfig({},env).publicOrigin,'https://prooflane.example');
+  assert.equal(readConfig({publicOrigin:'https://custom.example'},env).publicOrigin,'https://custom.example');
+  assert.throws(()=>readConfig({}, {...env,PROOFLANE_MODE:'local'}),/local development keys cannot be hosted/);
+  assert.throws(()=>readConfig({}, {...env,VERCEL_PROJECT_PRODUCTION_URL:undefined,VERCEL_URL:'untrusted-preview.example'}),/HTTPS origin/);
+});
+
+test('hosting lifecycle receives the PostgreSQL pool without opening a connection', async () => {
+  let pool;
+  const store=createStore({databaseUrl:'postgres://test:test@localhost/test',poolOptions:{idleTimeoutMillis:5000},attachPool:value=>{pool=value;}});
+  try {assert.equal(pool.totalCount,0);assert.equal(pool.options.idleTimeoutMillis,5000);assert.equal(store.kind,'postgres');}
+  finally {await store.close();}
 });
 
 test('public keys reject known development accounts without echoing private material', () => {
