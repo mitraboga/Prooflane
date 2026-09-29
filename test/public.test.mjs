@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { request } from 'node:http';
+import { request, Server } from 'node:http';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -8,10 +8,41 @@ import { ProoflaneService } from '../src/service.mjs';
 import { createSession, readSession, RequestLimiter } from '../src/session.mjs';
 import { readConfig } from '../src/config.mjs';
 import { publicWallet, validatePublicDeployment, confirmedReceipt } from '../src/chain.mjs';
-import { createHttpServer } from '../src/server.mjs';
+import { createHttpServer, createApplicationHandler } from '../src/server.mjs';
 import { createStore, postgresOptions } from '../src/store.mjs';
 
 const secret = 'test-only-session-secret-'.repeat(3);
+
+test('Vercel entry imports without binding a socket or initializing external dependencies', async () => {
+  const originalListen = Server.prototype.listen;
+  Server.prototype.listen = () => { throw new Error('Vercel must own the listening socket'); };
+  try { assert.equal(typeof (await import('../server.mjs')).default, 'function'); }
+  finally { Server.prototype.listen = originalListen; }
+});
+
+test('serverless requests share initialization, await responses and retry failed startup', async () => {
+  let starts = 0, responses = 0, release;
+  const ready = new Promise(resolve => { release = resolve; });
+  const handler = createApplicationHandler({}, async options => {
+    assert.equal(options.listen, false); starts++; await ready;
+    return {server:new Server(async (_req,res) => { await Promise.resolve(); responses++; res.end('ok'); })};
+  });
+  const response = () => ({body:null,headersSent:false,writeHead(status){this.status=status;},end(body){this.body=body;}});
+  const first=response(), second=response();
+  const pending=Promise.all([handler({},first),handler({},second)]);
+  assert.equal(starts,1); release(); await pending;
+  assert.equal(responses,2); assert.equal(first.body,'ok'); assert.equal(second.body,'ok');
+  await handler({},response()); assert.equal(starts,1);
+  let attempts=0;
+  const recover=createApplicationHandler({},async()=>{
+    if(++attempts===1) throw new Error('private dependency details');
+    return {server:new Server((_req,res)=>res.end('recovered'))};
+  });
+  const failed=response(); await recover({},failed);
+  assert.equal(failed.status,503); assert.equal(JSON.parse(failed.body).error.code,'STARTUP_UNAVAILABLE');
+  assert.doesNotMatch(failed.body,/private dependency details/);
+  const retried=response(); await recover({},retried); assert.equal(retried.body,'recovered'); assert.equal(attempts,2);
+});
 
 test('public indexing respects RPC range limits and resumes from its durable cursor', async () => {
   const directory=await mkdtemp(join(tmpdir(),'prooflane-index-pages-'));

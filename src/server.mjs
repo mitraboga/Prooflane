@@ -76,9 +76,26 @@ export async function startApplication(options = {}) {
     await service.reconcile();
   } catch (error) { if (service) await service.close(); await chain.close(); throw error; }
   const server = createHttpServer(service,config);
-  try { await new Promise((res,rej) => { server.once('error',rej); server.listen(config.port,config.host,res); }); }
+  try { if (options.listen !== false) await new Promise((res,rej) => { server.once('error',rej); server.listen(config.port,config.host,res); }); }
   catch (error) { await service.close(); await chain.close(); throw error; }
-  return { server, service, chain, config, url:config.publicOrigin || `http://127.0.0.1:${server.address().port}`, async close() { await new Promise(resolveClose => server.close(resolveClose)); await service.close(); await chain.close(); } };
+  return { server, service, chain, config, url:config.publicOrigin || `http://127.0.0.1:${server.address()?.port ?? config.port}`, async close() { if (server.listening) await new Promise(resolveClose => server.close(resolveClose)); await service.close(); await chain.close(); } };
+}
+
+// Initialize within a request, once per instance. Vercel stubs listen() during
+// module import without invoking its callback, so never await that callback here.
+export function createApplicationHandler(options = {}, start = startApplication) {
+  let application;
+  return async (req, res) => {
+    try {
+      application ??= start({ ...options, listen: false }).catch(error => { application = undefined; throw error; });
+      const app = await application;
+      return await app.server.listeners('request')[0](req, res);
+    } catch {
+      console.error('Public request initialization failed. Check database and RPC availability.');
+      if (!res.headersSent) res.writeHead(503, { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Retry-After': '10' });
+      res.end(JSON.stringify({ error: { code: 'STARTUP_UNAVAILABLE', message: 'The service is starting. Please try again shortly.' } }));
+    }
+  };
 }
 
 export async function runApplication(options = {}) {

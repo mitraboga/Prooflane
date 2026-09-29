@@ -1,10 +1,6 @@
-// Vercel captures server.listen() when it imports this entry point.
-// npm start keeps the standalone/local entry point in src/server.mjs.
+// Vercel imports this handler immediately; dependency initialization happens
+// inside the first request. npm start keeps the standalone/local entry point.
 import { attachDatabasePool } from '@vercel/functions';
-import { runApplication } from './src/server.mjs';
+import { createApplicationHandler } from './src/server.mjs';
 
-let pool;
-await runApplication({ attachPool: value => { pool = value; }, poolOptions: { idleTimeoutMillis: 5000 } });
-// Startup migrations run before Vercel creates a request scope. Register after
-// startup so connection releases can use the actual request's lifecycle.
-if (pool) attachDatabasePool(pool);
+export default createApplicationHandler({ attachPool: attachDatabasePool, poolOptions: { idleTimeoutMillis: 5000 } });
