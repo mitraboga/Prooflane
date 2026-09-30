@@ -21,7 +21,7 @@
 
 **Authorize → Execute → Sign → Anchor → Verify**
 
-[Public Hosting](docs/public-deployment.md) · [Local Quick Start](#-run-it-end-to-end) · [Architecture](#architecture) · [Solidity](#-solidity-in-practice) · [Measurements](#-testing-and-measurements) · [Interview Guide](docs/interview-guide.md)
+[Live Demo](https://prooflane-inky.vercel.app) · [Public Hosting](docs/public-deployment.md) · [Local Quick Start](#-run-it-end-to-end) · [Architecture](#architecture) · [Solidity](#-solidity-in-practice) · [Interview Guide](docs/interview-guide.md)
 
 </div>
 
@@ -33,7 +33,7 @@ An agent can call tools on someone's behalf, but an ordinary application log lea
 
 **Prooflane** is an end-to-end evidence system for that workflow. An owner publishes an agent's permissions and credit limits in a Solidity contract. A Node.js gateway executes permitted tools and signs receipts. The contract validates batches of receipts, and another party can verify an exported JSON bundle against the expected deployment.
 
-> **Current status:** the [Solidity contract is deployed on Base Sepolia](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb), with its runtime bytecode and creation block independently checked. **Vercel Hobby + Neon PostgreSQL** deployment is in progress; public acceptance checks remain pending. The original **SQLite + Anvil** mode remains runnable without credentials. This is a portfolio demo with deterministic tools, not an autonomous LLM or payment service.
+> **Live demo:** [prooflane-inky.vercel.app](https://prooflane-inky.vercel.app) runs on **Vercel Hobby + Neon PostgreSQL + Base Sepolia**. Visitors can create policies, execute tools, anchor receipts and verify evidence without a wallet. The public API workflow, visitor isolation, tamper rejection and standalone chain verification passed on September 30, 2026. The original **SQLite + Anvil** mode remains runnable without credentials. This is a portfolio demo with deterministic tools, not an autonomous LLM or payment service.
 
 ### What This Project Demonstrates
 
@@ -320,15 +320,27 @@ Exit code `0` means the requested checks passed; `1` means verification failed.
 
 ### Public Hosting
 
+**Open [Prooflane](https://prooflane-inky.vercel.app)** and choose **Create demo mandate**. Execute **Document fingerprint** and **Redact contact details**, anchor the receipts, then open one in the verifier. Try **Tamper with output** to demonstrate a failed content check. The server sponsors testnet gas; no installation, account or browser wallet is required.
+
 [Deployment runbook](docs/public-deployment.md) covers Vercel settings, Neon connection, encrypted testnet-key helpers, contract deployment and live acceptance checks. [`vercel.json`](vercel.json) selects native Node hosting in Singapore with Fluid Compute and a 300-second request limit. Vercel serves the existing website and API together; GitHub Actions validates the code. PostgreSQL connection pooling integrates with instance suspension, while persistent transaction intents and advisory locks support recovery across instances.
+
+The Vercel entry exports a request handler and initializes dependencies once per instance inside the first request. Concurrent requests share that initialization; a failed initialization can be retried. The same routes and security checks serve local and public modes. Free-tier quotas, cold starts, RPC availability and testnet gas can interrupt demonstrations; see the [operating limits](docs/public-deployment.md#limits-and-operations).
 
 The [public deployment manifest](deployments/base-sepolia.json) records the trusted chain configuration:
 
 | Deployment | Verified value |
 | --- | --- |
+| Website and API | [prooflane-inky.vercel.app](https://prooflane-inky.vercel.app) |
 | Network | Base Sepolia, chain `84532` |
 | Contract | [`0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`](https://sepolia.basescan.org/address/0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb) |
 | Creation | [Block 46858133, deployment transaction](https://sepolia.basescan.org/tx/0x3add062569fdf6aaf0aeec06ca01ab5d45f7777533c62045a57659430b96ebaf) |
+| Public workflow | [Two-receipt batch, block 47504786](https://sepolia.basescan.org/tx/0x4428cc6fbb1e13fdee3c11ccccca7a4abc0bb89e02789e176b278b003aa1d70a) |
+
+The committed [synthetic public receipt](docs/evidence/base-sepolia-receipt.json) can be checked independently of the website:
+
+```sh
+npm run verify -- docs/evidence/base-sepolia-receipt.json --rpc https://sepolia.base.org --chain-id 84532 --contract 0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb --confirmations 3
+```
 
 Startup checks the deployed runtime against the pinned Solidity build. This bytecode check is separate from an explorer's source-verification badge. Production secrets are scoped to the Vercel production environment. The retained Render configuration is an alternative; Render card verification was not completed.
 
@@ -339,7 +351,7 @@ Public visitors receive a signed, HttpOnly session cookie and see only their own
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `PROOFLANE_MODE` | `local` | `local` or `base-sepolia`; public mode fails startup if required settings are missing |
-| `PORT` | `3000` locally; captured internally by Vercel | Browser/API port |
+| `PORT` | `3000` locally; managed by Vercel in public mode | Standalone browser/API port |
 | `CHAIN_PORT` | `8545` | Local EVM RPC port |
 | `DATA_DIR` | `./data` | SQLite and persistent chain data |
 | `PROOFLANE_URL` | `http://127.0.0.1:3000` | SDK example's gateway URL |

@@ -1,5 +1,15 @@
 # Release validation
 
+## Public deployment — September 30, 2026
+
+- [Prooflane](https://prooflane-inky.vercel.app) serves the website and API on Vercel Hobby, with Neon PostgreSQL and the existing Base Sepolia contract. The HTML, CSS, JavaScript and health endpoint return HTTP 200 over public HTTPS without Vercel authentication.
+- All **62 tests passed, zero failed or skipped**, in [Linux CI with PostgreSQL 18](https://github.com/mitraboga/Prooflane/actions/runs/36588163269). Syntax checks, Solidity compilation and dependency audit passed; npm reported zero known vulnerabilities.
+- The live SDK created a mandate, executed digest/redaction, confirmed idempotent replay of a request ID and rejected a forbidden summarization tool. Both receipts settled in [transaction `0x4428…d70a`](https://sepolia.basescan.org/tx/0x4428cc6fbb1e13fdee3c11ccccca7a4abc0bb89e02789e176b278b003aa1d70a), block **47504786**, at **218,217 gas** for the batch. This is a single observed public run, not a throughput benchmark.
+- The public verifier accepted the exported bundle and rejected modified output. A separate visitor saw an empty workspace and could neither export the first visitor's receipt nor revoke its mandate.
+- The standalone CLI independently accepted the [committed synthetic bundle](evidence/base-sepolia-receipt.json), including signature, content, allowlist, on-chain policy, inclusion, successful transaction/event provenance and at least three canonical L2 confirmations. These are not Ethereum settlement finality.
+- Hosting fixes cover the public RPC's 1,000-block log-query cap and Vercel's intercepted `listen()` callback. Regression tests check durable cursor resumption, import without socket binding, shared request initialization and retry after failed initialization.
+- Fresh-deployment persistence and public browser screenshots are being finalized. The current README screenshots remain explicitly labeled as the original local demo.
+
 ## Vercel deployment preparation — September 28, 2026
 
 - Added a native Node entry point, explicit artifact/site bundling, Singapore region and 300-second Fluid Compute limit. Production retains Neon PostgreSQL and the existing Base Sepolia contract.

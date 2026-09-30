@@ -1,0 +1,53 @@
+{
+  "schema": "prooflane.receipt.v1",
+  "domain": {
+    "name": "Prooflane",
+    "version": "1",
+    "chainId": "84532",
+    "verifyingContract": "0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb"
+  },
+  "receipt": {
+    "mandateId": "0x9da8401e9f07c1273653547f7d327dfc17dedca19ac2ca599e4f3c5ad2ff5a0e",
+    "actionHash": "0x2fa0fe724701f3261f6f630aa3bf8ca3d5c5d223e7370c83f35af690dd3a9268",
+    "inputHash": "0x218f79ef467a93ee99f4b3b72463c6aa29ae8753d8ad8d4f2d5b8bc1fea7eb5c",
+    "outputHash": "0xef19c0629a7b1ab895f752a2ec61c8a6e1244c4211383bcca5cf870e72a865d7",
+    "cost": "20",
+    "nonce": "0"
+  },
+  "signature": "0xdcd4dcf9248929e3651580f76f991f58e2e708c70801c02b7f6e55ae5a575f23333d1b1c9af8adacfcd0c98ba033d1b7671ee84ff5cbca43acb8cdc2852362261b",
+  "agent": "0x70DE3a15CF48d91136FDA2A54256383b00eb2063",
+  "policy": {
+    "id": "0x9da8401e9f07c1273653547f7d327dfc17dedca19ac2ca599e4f3c5ad2ff5a0e",
+    "owner": "0x3b9Ba6C666784F38E8A3115b4Bb9C61fFffC45Df",
+    "agent": "0x70DE3a15CF48d91136FDA2A54256383b00eb2063",
+    "actionRoot": "0x02d9e8e3b10eee2b292cdcb65cd7c4a38fb589bea91f0d86bdfe5f67c4fed48d",
+    "budget": "100",
+    "maxPerReceipt": "40",
+    "expiresAt": "1790785032"
+  },
+  "action": {
+    "name": "document.digest",
+    "proof": [
+      "0x3e085f5f6b88c5e7fd7d38330a60c81b00319372589663b32d56c6dc0d699294"
+    ]
+  },
+  "input": {
+    "text": "Synthetic launch evidence. Contact alex@example.com. Every accepted tool call leaves a signed receipt."
+  },
+  "output": {
+    "bytes": 102,
+    "characters": 102,
+    "sha256": "404e6bafddb6d049061d8f173cb6912da93ded7e28d289758792308ad7fff33a",
+    "words": 13
+  },
+  "anchor": {
+    "root": "0x59ef2e748219d5e9714bab3a52351890c51d03b8aa64f010d76c06ea00ed7d7b",
+    "proof": [
+      "0xf2e53d1b00cbed4ec7269e61e46ee45bebb94f4ecc2553d413139a19c6024344"
+    ],
+    "transactionHash": "0x4428cc6fbb1e13fdee3c11ccccca7a4abc0bb89e02789e176b278b003aa1d70a",
+    "blockNumber": 47504786,
+    "chainId": "84532",
+    "contractAddress": "0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb"
+  }
+}

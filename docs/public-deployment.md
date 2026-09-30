@@ -2,7 +2,7 @@
 
 One Vercel Hobby Node application serves the website and API on the same HTTPS origin. Neon PostgreSQL persists evidence. An explicitly deployed Solidity contract on Base Sepolia enforces receipt policy. Local development retains SQLite and Anvil; tool behavior, signed schema and the execute → sign → anchor → verify flow are shared.
 
-**Status:** faucet funding and Base Sepolia contract deployment are complete. The [deployment manifest](../deployments/base-sepolia.json) records contract `0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`, created in block `46858133`. Its receipt, deployer, runtime bytecode and creation block were independently checked. Vercel deployment and live acceptance checks are in progress; no working public app URL is claimed yet. Render required card verification before creating a service, so the no-card deployment uses Vercel instead.
+**Live URL:** [prooflane-inky.vercel.app](https://prooflane-inky.vercel.app). The public API workflow passed on September 30, 2026 with Neon storage and the existing Base Sepolia contract. The [deployment manifest](../deployments/base-sepolia.json) records contract `0x00AAbffF4C9B8D26a7dAF06aEAc509DD133A95Eb`, created in block `46858133`; its receipt, deployer, runtime bytecode and creation block were independently checked. Render required card verification before creating a service, so the no-card deployment uses Vercel instead. See the [validation record](validation.md) for the checks actually completed.
 
 ## Preserve the local archive
 
@@ -63,7 +63,7 @@ Public compilation normalizes Solidity line endings to LF, so Windows deployment
 
 Import `mitraboga/Prooflane`, branch `main`, into a **Hobby** project. Select the **Node** preset and repository root `./`. [`vercel.json`](../vercel.json) sets the build, Singapore region, Fluid Compute and a 300-second request limit. Node.js 24 is required. Keep secrets scoped to **Production**; preview deployments must not receive the production database or signing keys.
 
-Vercel detects the root [`server.mjs`](../server.mjs) entry point and captures its Node HTTP server. It shares the standalone application's routes and startup checks. The entry point attaches the PostgreSQL pool to Vercel's lifecycle so idle connections close before an instance is suspended. Database state and transaction recovery never depend on a warm instance or local disk. See [native Node server support](https://vercel.com/docs/functions/runtimes/node-js) and [connection pooling](https://vercel.com/kb/guide/connection-pooling-with-functions).
+Vercel detects the root [`server.mjs`](../server.mjs) entry point, which exports a Node request handler. Dependencies initialize inside the first request, with one shared initialization promise per instance and retry after failure. This avoids awaiting a `listen()` callback that Vercel intercepts during module import. It shares the standalone application's routes and startup checks. The entry point attaches the PostgreSQL pool to Vercel's request lifecycle so idle connections close before an instance is suspended. Database state and transaction recovery never depend on a warm instance or local disk. See [Node runtime support](https://vercel.com/docs/functions/runtimes/node-js) and [connection pooling](https://vercel.com/kb/guide/connection-pooling-with-functions).
 
 | Setting | Value |
 | --- | --- |
