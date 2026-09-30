@@ -8,7 +8,8 @@
 - The public verifier accepted the exported bundle and rejected modified output. A separate visitor saw an empty workspace and could neither export the first visitor's receipt nor revoke its mandate.
 - The standalone CLI independently accepted the [committed synthetic bundle](evidence/base-sepolia-receipt.json), including signature, content, allowlist, on-chain policy, inclusion, successful transaction/event provenance and at least three canonical L2 confirmations. These are not Ethereum settlement finality.
 - Hosting fixes cover the public RPC's 1,000-block log-query cap and Vercel's intercepted `listen()` callback. Regression tests check durable cursor resumption, import without socket binding, shared request initialization and retry after failed initialization.
-- Fresh-deployment persistence and public browser screenshots are being finalized. The current README screenshots remain explicitly labeled as the original local demo.
+- Fresh-deployment persistence passed: after Vercel deployed commit `0a6f756`, the original in-memory guest session retrieved both anchored receipts and verified its exported evidence again. No cookie or credential was written to the repository.
+- Public browser screenshots remain pending: the local Chrome session returned `ERR_BLOCKED_BY_CLIENT`, while direct HTTPS checks for the website, assets and API succeeded. The existing README screenshots remain explicitly labeled as the original local demo; they are not represented as public-deployment screenshots.
 
 ## Vercel deployment preparation — September 28, 2026
 
