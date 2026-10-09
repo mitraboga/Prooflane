@@ -29,7 +29,7 @@
 
 ## 📖 Project Overview
 
-An agent can call tools on someone's behalf, but an ordinary application log leaves important questions with its operator: **Which key signed this result? Was the action within the owner's policy? Has the recorded output changed?**
+An agent can call tools on someone's behalf, but an ordinary application log leaves important questions with its operator: **Which key signed this result? Was the action within the owner's policy?**
 
 **Prooflane** is an end-to-end evidence system for that workflow. An owner publishes an agent's permissions and credit limits in a Solidity contract. A Node.js gateway executes permitted tools and signs receipts. The contract validates batches of receipts, and another party can verify an exported JSON bundle against the expected deployment.
 
