@@ -537,3 +537,14 @@ Next work is real agent-tool integration, external signing and identity, tested 
 
 ---
 
+## 👤 Author
+
+<p align="center">
+  <b>Mitra Boga</b><br><br>
+  <a href="https://github.com/mitraboga"><img src="https://img.shields.io/badge/GitHub-mitraboga-181717?logo=github&logoColor=white" alt="Mitra Boga on GitHub"></a>
+  <a href="https://www.linkedin.com/in/bogamitra/"><img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white" alt="Connect with Mitra Boga on LinkedIn"></a>
+  <a href="https://x.com/techtraboga"><img src="https://img.shields.io/badge/X-Follow-000000?logo=x&logoColor=white" alt="Follow Mitra Boga on X"></a>
+</p>
+
+<p align="center">Licensed under the <a href="LICENSE">MIT License</a>.</p>
+
